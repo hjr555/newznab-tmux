@@ -2,34 +2,19 @@ Newzdash
 ========
 
 Newznab-tmux dashboard, based upon free Charisma bootstrap theme
-	
+
     Based off original work titled 'Charisma' by Muhammad Usman
     Original Charisma license in doc/charisma-license.txt
 
 
-NewzDash is a Dashboard application built for the newznab indexing software (newznab.com)
+NewzDash is a Dashboard application built for the newznab-tmux/nZEDb indexing software (https://github.com/DariusIII/newznab-tmux / https://github.com/nZEDb/nZEDb)
 
 Installation Instructions
 
-- ensure that the php5-svn module is installed, on ubuntu/debian you can install with 'sudo apt-get install php5-svn'. NewzDash will
-  function without this but you will not see version information.
-- clone the git repository: 'git clone git@github.com:tssgery/newzdash.git'
-- Configure apache or nginx to server newzdash at port of your choosing (I prefer 8080)
+- Configure apache or nginx to serve newzdash at port of your choice. I prefer it configured as a subdomain on your host (ie. something.yourhost.whatever)
 - Access NewzDash via your browser at http://hostname:port
 - The first time you bring up NewzDash, it will redirect you to the configuration page.
--- You need to specify the directy where Newznab-tmux is installed so that NewzDash can find the Newznab-tmux config.php file
+- You need to specify the directy where Newznab-tmux is installed so that NewzDash can find the Newznab-tmux/nZEDb config.php file
 
-
-ToDo
-- Add authentication to NewzDash, using users stored within newznab
-- Add system information (such as memory and cpu consumption, and disk space)
-- Enable newzdash version checking and automatic updates
-
-Screens
-
-[ScreenShot](https://raw.github.com/tssgery/newzdash/master/screens/unnamed-dash.jpg)
-
-[ScreenShot](https://raw.github.com/tssgery/newzdash/master/screens/unnamed-recent.jpg)
-
-[ScreenShot](https://raw.github.com/tssgery/newzdash/master/screens/unnamed-stats.jpg)
+Newznab-tmux/nZEDb version is based on https://github.com/tssgery/newzdash.
 
