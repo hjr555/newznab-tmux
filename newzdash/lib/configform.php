@@ -3,7 +3,7 @@
 class ConfigForm
 {
 
-	public function getNewznabValues()
+	public function getValues()
 	{
 
 		printf('<div class="control-group">
@@ -91,10 +91,3 @@ class ConfigForm
 
         }
 }
-
-
-
-
-
-
-?>
