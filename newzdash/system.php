@@ -23,7 +23,7 @@
 
 
 	<!-- The styles -->
-	<link id="bs-css" href="css/bootstrap-cerulean.css" rel="stylesheet">
+	<link id="bs-css" href="css/bootstrap-redy.css" rel="stylesheet">
 	<style type="text/css">
 	  body {
 		padding-bottom: 40px;
@@ -48,6 +48,8 @@
 	<link href='css/jquery.iphone.toggle.css' rel='stylesheet'>
 	<link href='css/opa-icons.css' rel='stylesheet'>
 	<link href='css/uploadify.css' rel='stylesheet'>
+	<!-- Font Awesome Icons -->
+	<link href='css/font-awesome.min.css' rel='stylesheet' type='text/css'>
 
 	<!-- The HTML5 shim, for IE6-8 support of HTML5 elements -->
 	<!--[if lt IE 9]>
@@ -259,7 +261,7 @@
 	<!-- checkbox, radio, and file input styler -->
 	<script src="js/jquery.uniform.min.js"></script>
 	<!-- plugin for gallery image view -->
-	<script src="bower_components/colorbox/jquery.colorbox-min.js"></script>
+	<script src="js/jquery.colorbox.min.js"></script>
 	<!-- rich text editor library -->
 	<script src="js/jquery.cleditor.min.js"></script>
 	<!-- notification plugin -->

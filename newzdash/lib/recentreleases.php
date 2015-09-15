@@ -128,10 +128,4 @@ class RecentReleases
 		}
 	}
 
-	public function buildRecentOtherTable()
-	{
-		if (defined('SHOW_OTHER') && SHOW_OTHER === 'checked') {
-			RecentReleases::buildRecentTable(Category::CAT_PARENT_MISC, "Other");
-		}
-	}
 }

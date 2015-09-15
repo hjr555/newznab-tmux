@@ -1,7 +1,5 @@
 
 <?php
-
-require_once('config.php');
 require_once('../www/automated.config.php');
 
 
@@ -10,10 +8,8 @@ if (!file_exists(NN_WWW . DS . 'config.php'))
 	# send the browser to the configuration page, something is wrong!
 	header("Location: configure.php");
 }
-
-require_once("lib/dashdata.php");
-
-$dashdata = new DashData;
+require_once ('lib/dashdata.php');
+$dashdata = new DashData();
 
 ?>
 
@@ -63,7 +59,7 @@ $dashdata = new DashData;
 				</a>
 
 				<a data-rel="tooltip" title="Release Pending Post-Processing" class="well span4 top-block" href="#">
-				      <?php echo $dashdata->getPendingProcessingCount(); ?>
+				      <?php $dashdata->getPendingProcessingCount(); ?>
 				</a>
 
 
@@ -77,31 +73,28 @@ $dashdata = new DashData;
 					<?php $dashdata->getLastGroupUpdate(); ?>
 				</a>
 
-				<a data-rel="tooltip" title="Last Binary Added" class="well span4 top-block" href="#">
+				<!--<a data-rel="tooltip" title="Last binary Added" class="well span4 top-block" href="#">
 					<?php $dashdata->getLastBinaryAdded(); ?>
-				</a>
+				</a>-->
 
 				<a data-rel="tooltip" title="Last Release Created" class="well span4 top-block" href="#">
 					<?php $dashdata->getLastReleaseCreated(); ?>
 				</a>
+
+				<a data-rel="tooltip" title="Versions" class="well span4 top-block" href="#">
+					<?php $dashdata->getDatabaseInfo(); ?>
+				</a>
 			</div>
 			<!-- Date summaries end -->
-
-			<!-- Version summaries start -->
-			<div class="row-fluid">
-				<a data-rel="tooltip" title="Versions" class="well span4 top-block" href="#">
-					<?php $dashdata->getDatabaseAndRegexInfo(); ?>
-				</a>
-				<a data-rel="tooltip" title="NewzDash" class="well span4 top-block" href="#">
-					<?php $dashdata->getNewzDashInfo(); ?>
-				</a>
-			</div>
-			<!-- Version summaries end -->
-
-
-
-
-
+				<!-- Additional infor start -->
+				<div class="row-fluid">
+					<a data-rel="tooltip" title="Newest Release Added" class="well span4 top-block" href="#">
+						<?php $dashdata->getNewestRelease(); ?>
+					</a>
+					<a data-rel="tooltip" title="Git info" class="well span4 top-block" href="#">
+						<?php $dashdata->getGitInfo(); ?>
+					</a>
+				</div>
 					<!-- content ends -->
 			</div><!--/#content.span10-->
 				</div><!--/fluid-row-->
@@ -116,9 +109,5 @@ $dashdata = new DashData;
 	<!-- external javascript
 	================================================== -->
 	<!-- Placed at the end of the document so the pages load faster -->
-
-
-
-
 </body>
 </html>

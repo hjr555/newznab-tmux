@@ -8,9 +8,7 @@ else
 {
   include('config.php.base');
 }
-
-require_once("lib/configform.php");
-
+require_once ('lib/configform.php');
 $configform = new ConfigForm;
 
 ?>
@@ -23,19 +21,19 @@ $configform = new ConfigForm;
 
 		<div class="container-fluid">
 		<div class="row-fluid">
-				
+
 <?php include('includes/leftmenu.php'); ?>
-			
+
 			<noscript>
 				<div class="alert alert-block span10">
 					<h4 class="alert-heading">Warning!</h4>
 					<p>You need to have <a href="http://en.wikipedia.org/wiki/JavaScript" target="_blank">JavaScript</a> enabled to use this site.</p>
 				</div>
 			</noscript>
-			
+
 			<div id="content" class="span10">
 			<!-- content starts -->
-			
+
 
 			<div>
 				<ul class="breadcrumb">
@@ -47,7 +45,7 @@ $configform = new ConfigForm;
 					</li>
 				</ul>
 			</div>
-			
+
 
 			<div class="row-fluid sortable">
 				<div class="box span12">
@@ -59,41 +57,41 @@ $configform = new ConfigForm;
 						<form class="form-horizontal" method="POST" name="config" id="config" action="" >
 							<fieldset>
 							  <?php $configform->getNewznabValues(); ?>
-							  
-							  <?php $configform->getRecentCheckboxes(); ?>
-							 
-							  <?php $configform->getStatsCheckboxes(); ?> 
-							 						 
 
-							  <div id="results"></div>							 
+							  <?php $configform->getRecentCheckboxes(); ?>
+
+							  <?php $configform->getStatsCheckboxes(); ?>
+
+
+							  <div id="results"></div>
 							  <div class="form-actions">
 								<button type="submit" class="btn btn-primary">Save changes</button>
 							  </div>
 							</fieldset>
 						  </form>
-					     
+
 					</div>
 				</div><!--/span-->
-			
+
 			</div><!--/row-->
-			
-    
+
+
 					<!-- content ends -->
 			</div><!--/#content.span10-->
 				</div><!--/fluid-row-->
-				
+
 		<hr>
 
 		<div id="results"><div>
 	  <?php include 'includes/bottombar.php'; ?>
-		
+
 	</div><!--/.fluid-container-->
 
 	<!-- external javascript
 	================================================== -->
 	<!-- Placed at the end of the document so the pages load faster -->
 
-	
+
 	<script src="js/jquery.validate.min.js"></script>
 	<script type="text/javascript">
 	$(document).ready(function(){
@@ -115,7 +113,7 @@ $configform = new ConfigForm;
 			}
 		});
 	});
-	</script>		
-		
+	</script>
+
 </body>
 </html>
