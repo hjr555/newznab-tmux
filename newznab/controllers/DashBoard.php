@@ -93,7 +93,7 @@ class DashBoard
 		if (file_exists(NN_ROOT . '.git/HEAD')) {
 			$stringfromfile = file(NN_ROOT . '.git/HEAD', FILE_USE_INCLUDE_PATH);
 
-			$stringfromfile = $stringfromfile[0]; //get the string from the array
+			$stringfromfile = $stringfromfile[0]; //get the string FROM the array
 
 			$explodedstring = explode("/", $stringfromfile); //separate out by the "/" in the string
 
@@ -150,14 +150,14 @@ class DashBoard
 
 	public function getPendingProcessingCount()
 	{
-		$data = $this->pdo->query(sprintf('select count(*) as todo from releases where (bookinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 and categoryid IN (7010, 7020, 7040, 7060)) OR
-		(consoleinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 and categoryid in ( select id from category where parentid = 1000 AND categoryid != 1050)) OR
-		(imdbid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 and categoryid in ( select id from category where parentid = 2000 AND categoryid != 2020)) OR
-		(musicinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 and categoryid in ( select id from category where parentid = 3000 AND categoryid != 3050)) OR
-		(rageid = -1 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 and categoryid in ( select id from category where parentid = 5000  AND categoryid != 5050)) OR
-		(xxxinfo_id = 0 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 and categoryid in (select id from category where parentid = 6000 AND categoryid != 6070)) OR
-		(gamesinfo_id = 0 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 and categoryid = 4050)'
-		)
+		$data = $this->pdo->query(sprintf('SELECT COUNT(*) AS todo FROM releases WHERE (bookinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 AND categoryid IN (7010, 7020, 7040, 7060)) OR
+		(consoleinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 AND categoryid IN ( select id FROM category WHERE parentid = 1000 AND categoryid != 1050)) OR
+		(imdbid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 AND categoryid IN ( select id FROM category WHERE parentid = 2000 AND categoryid != 2020)) OR
+		(musicinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 AND categoryid IN ( select id FROM category WHERE parentid = 3000 AND categoryid != 3050)) OR
+		(rageid = -1 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 AND categoryid IN ( select id FROM category WHERE parentid = 5000  AND categoryid != 5050)) OR
+		(xxxinfo_id = 0 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 AND categoryid IN (select id FROM category WHERE parentid = 6000 AND categoryid != 6070)) OR
+		(gamesinfo_id = 0 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0 AND categoryid = 4050)'
+			)
 		);
 		$total = $data[0]['todo'];
 
@@ -175,9 +175,9 @@ class DashBoard
 			$allCategories = $category->get(true);
 
 			foreach ($allCategories as $cat) {
-				$res = $this->pdo->queryOneRow('select count(id) as num from releases where categoryid = %s', $cat['id']);
+				$res = $this->pdo->queryOneRow('SELECT COUNT(id) AS num FROM releases WHERE categoryid = %s', $cat['id']);
 				if ($res['num'] > 0) {
-					return['count' => $res['num'], 'category_title' => $cat['title']];
+					return ['count' => $res['num'], 'category_title' => $cat['title']];
 				}
 			}
 		}
@@ -208,33 +208,33 @@ class DashBoard
 		}
 
 		//amount of books left to do
-		$book_query = "select count(*) as todo from releases
-					  		where (bookinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
-							and categoryid IN (7010, 7020, 7040, 7060);";
+		$book_query = "SELECT COUNT(*) AS todo FROM releases
+					  		WHERE (bookinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
+							AND categoryid IN (7010, 7020, 7040, 7060);";
 		//amount of console left to do
-		$console_query = "SELECT count(*) as todo from releases
-							where (consoleinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
-							and categoryid in ( select id from category where parentid = 1000 AND categoryid != 1050);";
+		$console_query = "SELECT COUNT(*) AS todo FROM releases
+							WHERE (consoleinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
+							AND categoryid IN ( select id FROM category WHERE parentid = 1000 AND categoryid != 1050);";
 		//amount of movies left to do
-		$movies_query = "SELECT count(*) as todo from releases
-							where (imdbid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
-							and categoryid in ( select id from category where parentid = 2000 AND categoryid != 2020);";
+		$movies_query = "SELECT COUNT(*) AS todo FROM releases
+							WHERE (imdbid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
+							AND categoryid IN ( select id FROM category WHERE parentid = 2000 AND categoryid != 2020);";
 		//amount of music left to do
-		$music_query = "SELECT count(*) as todo from releases
-							where (musicinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
-							and categoryid in ( select id from category where parentid = 3000 AND categoryid != 3050);";
+		$music_query = "SELECT COUNT(*) AS todo FROM releases
+							WHERE (musicinfoid IS NULL AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
+							AND categoryid IN ( select id FROM category WHERE parentid = 3000 AND categoryid != 3050);";
 		//amount of pc games left to do
-		$pcgames_query = "SELECT count(*) as todo from releases
-							where (gamesinfo_id = 0 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
-							and categoryid = 4050;";
+		$pcgames_query = "SELECT COUNT(*) AS todo FROM releases
+							WHERE (gamesinfo_id = 0 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
+							AND categoryid = 4050;";
 		//amount of tv left to do
-		$tvrage_query = "SELECT count(*) as todo from releases
-							where (rageid = -1 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
-							and categoryid in ( select id from category where parentid = 5000  AND categoryid != 5050);";
+		$tvrage_query = "SELECT COUNT(*) AS todo FROM releases
+							WHERE (rageid = -1 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
+							AND categoryid IN ( select id FROM category WHERE parentid = 5000  AND categoryid != 5050);";
 		//amount of XXX left to do
-		$xxx_query = "SELECT count(*) as todo from releases
-							where (xxxinfo_id = 0 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
-							and categoryid in (select id from category where parentid = 6000 AND categoryid != 6070);";
+		$xxx_query = "SELECT COUNT(*) AS todo FROM releases
+							WHERE (xxxinfo_id = 0 AND isrenamed = 0 AND proc_pp = 0 AND proc_par2 = 0 AND proc_nfo = 0 AND proc_files = 0 AND proc_sorter = 0)
+							AND categoryid IN (select id FROM category WHERE parentid = 6000 AND categoryid != 6070);";
 
 		# books
 		$books = $this->pdo->queryOneRow($book_query);
@@ -258,5 +258,74 @@ class DashBoard
 		$res = $this->pdo->queryOneRow($xxx_query);
 		echo $res["todo"];
 
+	}
+
+	public function buildRecentTable($newznab_cat, $category)
+	{
+		$category = new Category;
+		# get all the child categories
+		$allcategories = $category->getChildren($newznab_cat);
+		$catarray = [];
+
+		foreach ($allcategories as $cat) {
+			array_push($catarray, $cat['id']);
+		}
+
+		$catstring = implode(',', $catarray);
+
+		$res = $this->pdo->query(sprintf('SELECT r.searchname AS name,
+							r.adddate AS date, r.guid AS guid, c.title AS title
+							FROM releases r INNER JOIN category c ON c.id = r.categoryid
+							WHERE r.categoryid IN (%s) ORDER BY r.adddate DESC limit 0,50', $catstring
+								)
+							);
+		foreach ($res as $row) {
+			$name = $row["name"];
+			if (strlen($name) > 50) {
+				$name = substr($row["name"], 0, 45);
+			}
+		}
+	}
+
+	public function buildRecentMoviesTable()
+	{
+		if (defined('SHOW_MOVIES') && SHOW_MOVIES === 'checked') {
+			DashBoard::buildRecentTable(Category::CAT_PARENT_MOVIE, "Movies");
+		}
+	}
+
+	public function buildRecentMusicTable()
+	{
+		if (defined('SHOW_MUSIC') && SHOW_MUSIC === 'checked') {
+			DashBoard::buildRecentTable(Category::CAT_PARENT_MUSIC, "Music");
+		}
+	}
+
+	public function buildRecentConsoleTable()
+	{
+		if (defined('SHOW_GAMES') && SHOW_GAMES === 'checked') {
+			DashBoard::buildRecentTable(Category::CAT_PARENT_GAME, "Console");
+		}
+	}
+
+	public function buildRecentTVTable()
+	{
+		if (defined('SHOW_TV') && SHOW_TV === 'checked') {
+			DashBoard::buildRecentTable(Category::CAT_PARENT_TV, "Televison");
+		}
+	}
+
+	public function buildRecentPCTable()
+	{
+		if (defined('SHOW_PC') && SHOW_PC === 'checked') {
+			DashBoard::buildRecentTable(Category::CAT_PARENT_PC, "PC");
+		}
+	}
+
+	public function buildRecentXXXTable()
+	{
+		if (defined('SHOW_XXX') && SHOW_XXX === 'checked') {
+			DashBoard::buildRecentTable(Category::CAT_PARENT_XXX, "XXX");
+		}
 	}
 }
