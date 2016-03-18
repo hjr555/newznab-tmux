@@ -1,12 +1,11 @@
-2016-03-18 DariusIIi
-	* Upd: Add bunch of fixes from dev-composer branch
-	* Chg: Fix max_headers_iteration, change semantics for failed releases check
-	* Upd: Add back TV processing to NFO processing.
 2016-03-07 DariusIII
+	* Fix: Fix another instantiation in Groups
+	* Fix: Fix instantiation of Binaries Class in Groups.php
 	* Upd: Adjust the names of daytopost and postdate functions
 2016-03-06 DariusIII
 	* Upd: Add trailing slash to saburl on profile edit
 2016-03-02 DariusIII
+	* Fix: Prevent undefined notices in Gamma theme books page
 	* Fix: Fix Gamma menu on hover, use shared script for menu hover in all the themes.
 2016-03-01 DariusIII
 	* Chg: Adjust Gamma theme, add dropdown on hover to menus.
@@ -14,50 +13,60 @@
 	* Chg: Use jquery-migrate-1.4.0 in all the themes.
 	* Add: Add jquery-2.2.1.min.js to shared/scripts folder and use it in all the themes
 2016-02-29 DariusIII
-	Chg: Change occurences of form-search to form-inline in Charisma and Omicron templates
+	* Chg: Change occurences of form-search to form-inline in Charisma and Omicron templates
 2016-02-26 DariusIII
-	Chg: Remove nzbgetintegrated check from templates, check for empty sabintegrated fields
+	* Chg: Remove nzbgetintegrated check from templates, check for empty sabintegrated fields
 2016-02-25 DariusIII
-	Chg: Replace custom filter code in templates with search-filter.tpl
-	Chg: Move rss, rssdesc and search-filter.tpl to shared folder
-	Fix: Fix Gamma theme rss.
-	Fix: Prevent undefined index userdata error on headermenu of all themes
+	* Chg: Replace custom filter code in templates with search-filter.tpl
+	* Chg: Move rss, rssdesc and search-filter.tpl to shared folder
+	* Fix: Fix Gamma theme rss.
+	* Fix: Prevent undefined index userdata error on headermenu of all themes
 2016-02-23 DariusIII
-	Fix: Fix undefined index errors on book pages.
-	Add: Add LICENSE.txt.
-	Add: Add ubuntu install guide when installer will be available
-	Chg: Update the removeWMV function on ReleaseRemover.
-	Chg: Remove unneccessary MYSQL_ATTR_INIT_COMMAND from PDO dsn options array. This was only
+	* Fix: Fix undefined index errors on book pages.
+	* Add: Add LICENSE.txt.
+	* Add: Add ubuntu install guide when installer will be available
+	* Chg: Update the removeWMV function on ReleaseRemover.
+	* Chg: Remove unneccessary MYSQL_ATTR_INIT_COMMAND from PDO dsn options array. This was only
 		needed before PHP 5.3.6 as 'charset' was ignored.
-	Fix: Add missing Music class to MiscSorter.
+	* Fix: Add missing Music class to MiscSorter.
 2016-02-20 DariusIII
-	Fix: Fix typo for userexcat table in Users.php
+	* Fix: Fix typo for userexcat table in Users.php
 2016-02-19 DariusIII
-	Fix: Fix missed references to prehashid in scripts (replaced them with proper preid)
+	* Fix: Fix missing smarty const from Charisma/Omicron headermenu.tpl
 2016-02-18 DariusIII
-	Fix: Fix and update nntmux_fi_schema, fix patch numbers.
+	* Upd: Update nntmux_fi_schema.sql
+	* Fix: Fix typo in link to myshows in Omicron template.
 2016-02-17 DariusIII
-	Fix: Fix Gamma headermenu when coverview is not enabled
-	Fix: Broken nzbs on download
-	Fix: Fix missing $category in site edit page
+	* Chg: Rename category for smarty to catCLass to prevent conflicts
+	* Upd: Update getCategoryExclusion and getCategoryExclusionNames functions.
+	* Fix: Fix Gamma theme headermenu when coverview is disabled
+	* Chg: Change position of browse groups from headermenu to left side menu
 2016-02-16 DariusIII
-	Chg: Rename Categories class get function to getCategories
-	Fix: Prevent errors when pagertotalcount is not set
-	Chg: Move showApiError function to Utility class, adjust pages that use it.
+	* Chg: Rename Categories class get function to getCategories
+	* Fix: Prevent errors when pagertotalcount is not set
+	* Chg: Move showApiError function to Utility class, adjust pages that use it.
 2016-02-13 DariusIII
-	Upd: Use $category for constants
+	* Upd: Use $category for constants
 2016-02-11 DariusIII
-	Fix: Fix filelist view in themes
-	Upd: Add screen sequential and threaded scripts
+	* Fix: Fix filelist view in themes
+	* Upd: Add screen sequential and threaded scripts
 2016-02-10 DariusIII
-	Upd: Templates use category constants, changed foreach loop syntax to smarty 3
-	Upd: Switch to category constants part1
-	Upd: Remove CAT_ from category names, change parent categories names to root
+	* Upd: Switch foreach loops from smarty2 to smarty3 syntax
+	* Chg: Switch templates from category numbers to category constants usage
+2016-02-09 DariusIII
+	* Upd: Switch to category constants from category numbers, part 1
+	* Upd: Change other cat numbers to be the last number in their range x999
+2016-02-07 DariusIII
+	* Chg: Remove CAT_ from categories names and rename parent categories to root.
+2016-02-04 DariusIII
+	* Upd: Add function to fetch category values
 2016-02-03 DariusIII
-	Chg: Move fonts and css not related to bootstrap to css and fonts folders in shared respectively
-	Fix: Replace deprecated html tag <center> with proper CSS
+	* Chg: Move fonts and css not related to bootstrap to css and fonts folders in shared respectively
+	* Fix: Replace deprecated html tag <center> with proper CSS
 2016-02-01 DariusIII
-	Upd: Change name of CAT_BOOK_ to CAT_BOOKS_, change cat number for book/other from 7050 to 7999
+	* Chg: Rename CAT_BOOK_ to CAT_BOOKS_, change the book other category from 7050 to 7999
+2016-01-29 DariusIII
+	Chg: Remove utf8_encode to speed up processing of binaries and collections, fix by @izolight
 2016-01-28 DariusIII
 	Upd: Update blacklist removal in ReleaseRemover class.
 2016-01-27 DariusIII
@@ -73,21 +82,19 @@
 	Upd: Update getID3 to latest revision
 	Upd: Update ReleaseExtra class
 2016-01-20 DariusIII
-	Upd: Update isISO categorization, broaden triballs categories, move and update recategorize script.
+	Upd: Update isISO categorization, broaden triballs categories.
 2016-01-18 DariusIII
-	Chg: Change Misc categories to be 0000
+	Upd: Update newznab_api_specification and fix ajax_prehashinfo references.
+	Chg: Move Other category (Misc and Hashed) to categoryid 0000.
 2016-01-15 DariusIII
 	Rmv: Remove the unused Sphinx class.
-	Fix: Revert to low quality, good for nothing, RottenTomatoes poster images in upcoming pages.
 2016-01-14 DariusIII
 	Upd: Remove all references to predb/nzpre from templates as it is non-functional since october
 	Add: Port match_prefiles.php from nZEDb
 2016-01-13 DariusIII
-	Fix: Fix setting name in update_binaries.php
-	Fix: Fix instances of NZBPath
 	Upd: Adjustments in templates, move common bootstrap file to shared/libs/bootstrap/v3/ folder
 2016-01-12 DariusIII
-	Fix: 2 bugs in NZB and NZBContents classes.
+	Fix: Revert ogg video processing to default ogv extension
 2016-01-11 DariusIII
 	Upd: Move api*.tpl files to themes/shared/templates
 	Upd: Make sure we have a theme
@@ -99,9 +106,13 @@
 2016-01-06 DariusIII
 	Upd: Update the srr renaming functions.
 2016-01-05 DariusIII
+	Upd: Update bootstrap-tour in Charisma to version 0.10.2
+2016-01-04 DariusIII
 	Chg: Move frontend to templates dir, adjust Page to accomodate settings from BasePage (moved the template settings to Page)
 2016-01-02 DariusIII
-	Fix: srr and filename threaded renaming
+	Fix: Fix wrong likeString usage in NameFixer
+2016-01-01 DariusIII
+	Fix: Fix threaded filename and srr matching, switch tmux back to threaded matching.
 2015-12-31 DariusIII
 	Fix: Fix wrong table name, switch to non-threaded version of fixReleaseNames script for filenames and srr matching.
 2015-12-30 DariusIII
@@ -109,228 +120,269 @@
 2015-12-29 DariusIII
 	Chg: Add release renaming based on included srr filename, fix one long standing bug in NameFixer
 2015-12-28 DariusIII
-	Fix: Revert the change in getBrowseRange function in Releases.php
 	Upd: Update fileInfo function in Utility.php
 2015-12-23 DariusIII
-	Fix: Error in Binaries, sorting by grabs in Gamma
-	Chg: Change some query parts and fix one small error in Binaries.php
+	Chg: Add use statement for ReCaptcha
+	Fix: Change how grabs are sorted in Gamma
 2015-12-22 DariusIII
-	Upd: Fix small errors in Releases.php
 	Fix: Fix icons and add grabs count to Gamma template
 2015-12-21 DariusIII
-	Upd: Update smarty to version 3.1.29
-	Upd: Rework some queries id Releases, fix one long standing bug (requestid python script).
-	Chg: Remove dlbrowse page and My Downloads link, as well as associated function from Releases and tpl files from themes.
+	Upd: Update smarty to 3.1.29
+	Upd: Remove dlbrowse page
 	Upd: Add noscript support to captcha (fix by zetas@nZEDb)
+	Fix: Fix wrong movie sample extension in Gamma
 2015-12-17 DariusIII
 	Fix: Add forgotten password link to Gamma, fix forgottenpassword page
-	Upd: Update the newznab/db/populate/AniDB class.
 2015-12-16 DariusIII
+	Upd: Update the newznab/db/populate/AniDB class.
 	Add: Add full XXX movie view to all the templates
 	Upd: Add new 2160p quality option to series and movies view in Gamma template.
 	Fix: Do not show site theme selection in profile edit if admin has disabled user selectable themes.
 	Fix: Templates could not be changed if user selectable templates were disabled.
 	Upd: Refactor BasePage for new theme settings, adjust templates to use the new structure and constants.
 2015-12-15 DariusIII
-	Fix: Add contact page to Gamma template, fix menu item edit page
-	Drp: Drop tvrage, tvrage_episodes and tvrage_tables if they still exist in DB
-	Fix: Allow emtpy NZBGet url in profile.
+	Upd: Update nntmux_fi_schema
+	Fix: Add contact page to Gamma template, fix menu items edit page
+	Fix: Allow empty NZBGet URL in profile
+	Rmv: Remove tvrage, tvrage_titles and tvrage_episodes tables
 	Upd: Update Failed releases and serchname handling
-2015-12-14 DariusIII
-	Upd: Clean up, remove unused functions, fix some small bugs in Binaries.php
 2015-12-13 DariusIII
 	Chg: Update DnzbFailures getAlternate function, add DNZB return code.
 2015-12-12 DariusIII
 	Upd: Update pre-commit hook
 	Fix: Crap time was left out of codec poster removal query.
 2015-12-11 DariusIII
-	Fix: Update PHPDOC blocks. Improve  removeCodecPoster in speed and precision.
-	Fix: Fix path to config.php in python scripts
-	Chg: Change COUNT(*) queries to count the primary key columns to improve query performance. Re-work the count querying in PreHash class (fixes by @ruhllatio)
-	Fix: Fix doubled SET in RequestIDLocal class, change and fix cover/list selector in Gamma template
+	Upd: Update removeCodecPoster in terms of speed and precision.
+	Upd: Update PHPDOC blocks
+	Fix: Anime in Gamma.
+	Fix: Fix path to config.php in pythonn scripts
+	Fix: Cover/list view selector (replaced icons with simple text), removed duplicated  list icon.
+	Fix: Fix doubled SET in RequestIDLocal class
+	Chg: Change COUNT(*) queries to count the primary key columns to improve query performance
+	Chg: Re-work the count querying in PreDb class
 2015-12-10 DariusIII
-	Upd: Update pre-commit hook
+	Upd: Update the pre-commit hook.
 	Upd: Switch to using UNION ALL in removeCodecPoster function, it increases the speed of that query dramaticaly.
 2015-12-09 DariusIII
-	Fix: Forgot to enable TraktTv processing in PostProcess.php
 	Upd: Remove referencex to UC and womble from prehash pages
 	Chg: Move git-hooks out of newznab into build folder, update hooks, remove addGitHook.php, not used anymore (ported from nZEDb @niel)
 2015-12-08 DariusIII
 	Fix: Try to fix failing query when lastArticleDate is NULL (fix @kevin123)
-	Fix: Fix missing / in paths
-	Fix: Fix queries for movies again(@Bart39), small arrangement of codecposter query in ReleaseRemover.
+	Fix: Missing / from path to covers in movie.tpl
+	Fix: Fix queries for movies again(by Bart39), small arrangement of codecposter query in ReleaseRemover.
 2015-12-07 DariusIII
-	Upd: Update utils.js, change cart to download basket.
+	Upd: Update utils.js in Gamma template
 	Fix: Change registerstatus to 0 (open) in nntmux_fi_schema.sql
 2015-12-04 DariusIII
 	Fix: Fix the limits on Sphinx executable removal
-	Fix: Adjust Gamma template
+	Chg: Add backcover for XXX and screenshot for games tabs in details page
 	Upd: Update Version.php to not update commits and use tags only on master branch
 2015-12-03 DariusIII
-	Fix: Login and register captcha on Gamma template
-	Chg: Remove tvrage scripts, add script to check for missing covers, nzb_reorg and unique indexes.
-	     Remove traktid columns from movieinfo and releases tables.
-2015-12-02 DariusIII
-	Fix: Fix Charisma menu issues
-	Upd: Many changes in templates moved from regexless branch
-	Add: Add Gamma template by RickDB, rename charisma and omicron
-	Rmv: Remove nntmux template
+	Fix: Fix captcha on login/register and images in upcoming
+	Add: Add script to check movies for missing covers.
+	Chg: remove traktid columns from movieinfo and releases table, add nzb_reorg script, add script to check
+	     missing unique indexes based on nntmux_fi_schema.sql
+2015-12-01 DariusIII
+	Chg: Replace Cart with Download Basket
+	Fix: Add posterwall.css
+	Upd: Update bootstrap to version 3.3.6
+	Fix: Add None to list of themes to choose from
+	Upd: Add Movie View link to movies detail page
+	Chg: Remove AND again from getBrowseBy
+	Upd: Update binaryblacklist-edit.php
+2015-11-30 DariusIII
+	Fix: Add missing links to TMDB  in Charisma/Omicron/Gamma templates
+	Fix: Add back AND to getBrowseBy function in Movie.php
+	Upd: Update Gamma font awesome to 4.5.0
+2015-11-29 DariusIII
+	Chg: Remove traktid from Movie lookups
+2015-11-28 DariusIII
+	Chg: Move themes_shared folder into themes/shared. Add new Gamma template (still WIP)
 2015-11-27 DariusIII
-	Upd: Add working TraktTv processing to TV processing
+	Chg: rename template folders to Omicron and Charisma
+	Rmv: Remove nntmux theme, it has been out of sync for some time now
 2015-11-26 DariusIII
-	Upd: Adjust templates, update queries for the change
-	Mrg: Merge PR #111 from RickDB
-	Mrg: Merge PR #110 from RickDB
+	Upd: Trakt processing works
+	Add: Add TraktTv processing
+	Fix: Fix the full movie view
 2015-11-24 DariusIII
-	Fix: Fix failed count display, improve books, consoles and music cover view speeds
-	Fix: Indexing of release files with SphinxSearch
-	Upd: update create_se_tables and populate_rt_indexes scripts for sphinxsearch
-	Upd: Update templates to font-awesome 4.5.0
+	Fix: Fix failed releases count, improve cover view speeds in books, music and console view
+	Rmv: Remove travis, PITA to set up
+	Add: Add travis-ci .travis.yml to newznab-tmux
+	Upd: Update populate and create sphinx scripts
+	Fix: Fix release files indexing with sphinx
+	Upd: Update templates to font-awesome 4.5.0.
 2015-11-23 DariusIII
-	Fix: Count of failed releases
-	Fix: Broken queries, TV processing, security for failed downloads
-	Fix: Fix broken queries in DnzbFailures and Releases classes
-	Chg: Revert binaries discarding
-	Chg: Change the dnzb_failures table layout
-	Fix: Add back missing regex-edit.php
-	Upd: Port binaries discarding based on set sizes from nn+
-	Mrg: PR #109 from RickDB - Added request id backfill script for AllFilled
-	Chg: Add back spotnab processing to tmux
-	Fix: Rework dnzb_failures and improve speed in queries related to it
+	Fix: Failed releases count
+	Fix: Security issues in dnzb failed downloads
+	Fix: Broken queries in DnzbFailures and Releases classes. Fix TV processing
+	Fix: Change dnzb_failures table
+	Chg: Add spotnab processing back to tmux
+	Fix: Change dnzb_failure queries to use releaseid for speed improvements, add index to releaseid.
 2015-11-22 DariusIII
 	Fix: Do not cache local failure for TV processing
-	Fix: Fix the query in search function
+	Fix: Fix the query in search
 2015-11-20 DariusIII
-	Fix: Fix the site themes scan folder
+	Fix: Fix the sites theme scan folder
+	Chg: Remove version tag
 	Fix: Fix aka processing in TVMaze, remove leading year from TV releases before processing them
-	Fix: Fix the schema for clean installs
+	Fix: Fix the schema for new installs
 	Chg: Remove reference to database from nntmux_fi_schema.sql
 2015-11-19 DariusIII
-	Fix: Add missing SphinxSearch class to populate_rt_indexes
-	Chg: Remove newzdash, add schema for fresh newznab+ installs
-	Upd: Rework book, console and movie queries, use ceil instead of round in pager.tpl
-	Fix: change to getNZBPath in ProcessAdditional
+	Fix: Missing use statement in populate_rt_indexes
+	Add: Add schema for fresh newznab+ installs
+	Chg: Remove option to postprocess properly renamed releases, useless option that caused too much problems
+	Upd: Rework book, movie, console queries, use ceil instead of round in pager
+	Upd: Add queryCalc function to DB class
+	Upd: Add nfo to api
 2015-11-18 DariusIII
-	Fix: Wrong coulm used in releases
-	Fix: Release categorization now uses proper partition
-	Chg: Use releaseid from releasefiles, rename releasefiles table to release_files
-	Fix: TVMaze processing
+	Fix: Fix release categorization to use proper partition
+	Chg: Remove newzdash from tmux, not worth the space
+	Fix: Fix patch 0111 and remove patch 0149 as it is now in schema.sql
+	Chg: Use releaseid instead of id from releasefiles table, rename releasefiles table to release_files
+	Fix: TVMaze AKA processing and some other bugs
 2015-11-16 DariusIII
-	Fix: Use rawurlencode in JPinkney/TVMaze/Client.php
-	Fix: Add covers path to constants.php
-	Fix: Change $_data from private to public in Tmdb
-	Upd: Change series packs are displayed in Omicron/Charisma templates
-	Fix: Rename TMDB.php to TmdbAPI.php
-	Fix: Add missing AKA processing from JPinkney/TVMaze
-	Upd: Add new PreDb class, update predb_import_daily_batch.
-2015-11-15 DariusIII
-	Chg: Remove spotnab processing from tmux
-	Upd: Speed up cover browsing, optimize SpotNab
-	Chg: Add many fixes ported from nZEDb
+	Fix: Use rawurlencode in TVMaze/Client.php
+	Upd: Change how season packs are displayed
+	Chg: Remove spotnab from tmux
+	Upd: Speed up cover view browsing, optimize SpotNab
+	Chg: Numerous TV related fixes ported from nZEDb
 2015-11-12 DariusIII
-	Upd: Update TV processing, add TMDB and Trakt.
+	Fix: Remove timeZone as tmdb is already UTC
+	Upd: Update TV episodes parsing
+	Fix: Fix Typo for TMDB in series view
+	Upd: TV processing. Parse TV show properly, update Trakt support
 2015-11-10 DariusIII
-	Chg: Change the way failed releases are counted
+	Fix: Typos
+	Upd: Update TV support, fix TV processing logic
+	Fix: undefined offset error
+	Chg: Change how failed releases are tracked
 2015-11-09 DariusIII
-	Fix: pre-commit file
-	Fix: Fix the path to patches in Versions.php
-	Add: Add trigger, unique index to release_comments table
-	Fix: group list pager not working
+	Fix: pre-commit hooks
+	Add: Add back trigger and unique index to release_comments table
+	Fix: Collection naming regex patches
+	Add: Add new PreDb class for prehash imports, update predb_import_daily_batch to use the new nZEDb github repo.
+	Add: Add new collection and release_naming regexes from nZEDb
 2015-11-06 DariusIII
 	Fix: Wrong column name in NameFixer
-	Fix: Cart RSS feed, admin user role edit
+	     Wrong cat name
+	Fix: Fix cart RSS feed, role-edit.
 2015-11-05 DariusIII
-	Add: Add check_previews script from nZEDb
-	Fix: serverroot errors
+	Upd: Change show edit in admin
 	Fix: Typo in ReleaseRemover that caused errors
-	Fix: port more fixes for ADM from nZEDb
+	Upd: Add Trakt to processing
+	Fix: Change some variables in TMDB and TRAKT
+	Fix: Fix ADM processing
 2015-11-04 DariusIII
-	Fix: Fix patch 157
+	Upd: Change countries table
+	Fix: Fix patch 202
 2015-11-03 DariusIII
-	Fix: Fix wrong redirect after release edit
+	Chg: Move TmdbAPI back to libs/Tmdb folder
+	Fix: Possible fix for release edit problem
 2015-11-02 DariusIII
-	Fix: Manualy update xml version
-	Fix: TVMaze processing
+	Fix: Descriptions in TV.php
+	Fix: Ensure that returned results are array and not empty
 2015-11-01 DariusIII
-	Fix: Fix some offset errors, fix akas processing, remove debug info
+	Upd: Fix TVMaze
+	Fix: Fix akas processing, fix offset errors
 2015-10-31 DariusIII
-	Add all the processing to tv
+	Add: Add nezork name to show name
+	Fix: Buttons for TV links
+	Upd: Add all sources that are avalable to series view
+	Upd: Add first batch of changes for akas processing
 2015-10-30 DariusIII
-	Fix: ApaiIO errors
-	Chg: Move ApaiIO and Tmdb libraries to libs folder
-	Fix: Fix the ordering in templates and some of the errors
-	Chg: Change the order of sources processing, move TvRage to the end, TVMaze to second place
-	Chg: Move My Shows link to user account dropdown
+	Fix: ApiIO errors.
+	Fix: Some of the problems created by moving TVMaze up in processing
+	Chg: Move ApaiIO and Tmdb libraries into libs folder
+	Chg: Simplify the is_array
+	Chg: Change admin/user-edit
+	Upd: searchId function in TraktAPI
+	Upd: Change the ordering of TV processing
 2015-10-29 DariusIII
-	Add: Add fixes from dev-regexless-tv branch
-	Fix: Remove tvinfoid from insertReleases function
-	Upd: Add patch to rename scrape into run_ircscraper in tmux table
+	Fix: Fix the firstaired request
+	Chg: Remove debug output from TraktTv
+	Fix: SCR removal in ReleaseRemover and update queries
+	Fix: TV count in Tmux (still off as other scrapers need to be added)
+	Fix: Add network to nzb dettails page
+	Upd: Update the Versions.php
 2015-10-28 DariusIII
-	Fix: Missing TraktTv
 	Fix: Fix the no cover image
-	Fix: Remove unused $countres
-	Upd: Remove totalrows count to speed up site
-	Fix: Fix the typo in releasesearch tablename
-	Upd: Add missing TraktAPI class, remove classes from newznab folder, fix porting errors
-2015-10-27 DariusIII
+	Upd: Make scrutinizer happy
+	Upd: Remove totalrows count ffrom some functions and api
+	Add: Add .idea folder to gitignore
 	Fix: Scrape countries properly
-	Fix: remove rss functions from Releases.php, fix python scripts looking for DB_SYSTEM constant
-	Upd: Monitor and Tmux for irc scraper
-	Upd: Change the name of versions file to nntmux.xml
-	Chg: Change tvinfoid to rageid in patch 138
-	Fix: Fix notices on anime pages
+	Fix: Fix the patches again
+	Upd: Update monitor, tmux and fix patches and schema
+	Fix: Wrong name of DB_TYPE constant
+	Chg: Rename scrape into irc_scraper
+	Upd: Change the name of the versions file to nntmux.xml
+	Upd: Move My Shows link from TV to Account area. Update import.
+	Fix: Fix the query again
+	Fix: Fix the query
+	Fix: Improve non-cover browse speed, fix undefined offset in Tv.php regex processing
+2015-10-27 DariusIII
+	Upd: Remove searchname header from anime page
+	Chg: Change anime view page
+	Upd: Update the Readme.md for latest changes
+	Upd: Pull latest changes from nZEDb (fix trakt, speedup show search etc)
 2015-10-26 DariusIII
-	Upd: Sites class, add default constructor
-	Upd: Refactor TV support
-2015-10-21 DariusIII
-	Fix: NZB error in processing/post/AniDB
-	Fix: Instantiation of Genres class in Console.php and path to postprocess_pre in TmuxRun.php
-	Fix: Reported errors in Forking and settings.example.php
-	Fix: Rename rageid into tvinfoid
-2015-10-20 DariusIII
-	Upd: Update schema, change or remove some patches-
-	Upd: Update patch 56
-	Upd: Update patch 83
-	Chg: Hopefully last addition to schema
-	Chg: Change description on ircscraper.
-	Fix: Schema and ircscraper settings in tmux.
-	Fix: Typo in queryExec
-	Fix: Add missing posprocess_pre script, change references to Page in Releases.php
-	Fix: Again some fixes for schema and site-edit.php
-	Fix: Schema.sql
-	Fix: ffs
-	Fix: Again patches and schema
-	Fix: Fix patches and schema
-	Fix: Typo in schema.sql
-	Chg: Update patches, update db.sql and rename it to schema.sql.
-	Fix: Another class use fix
-	Chg: Change rageid into tvinfoid as temporary solution in Tmux.php
-	Upd: update patches - remove rageid.
-2015-10-19 DariusIII
-	Upd: Update the DbUpdate class
-	Fix: update_db error.
-	Fix: More script adjustments
-	Fix: Fix book and misc menu in omicron template
-	Upd: Many small changes to classes
-	Chg: InnoDB to MYISAM in patches
-	Fix: Wrong path to indexer.php
-	Fix: Instantiation of Logger class in DB.php
-	Chg: Add tmux 2.0.3 packages
-	Fix: Missing Tmux class
-	Fix: Error for undefined stdClass
-	Fix: LoggerException erro.
-	Fix: Remove references to www/config.php in Settings.php
-	Upd: small update to XXX class.
-	Fix: @var Users in BasePage.php
-	Fix: references to site replaced with settings
-	Chg: Moved db.sql into resources/db/schema folder, patchDB does not need to be used anymore. Will be removed in next patch
-	Upd: Fix tmux paths for moved files.
-	Upd: Refactor branch completely.
-2015-10-18 DariusIII
-	Fix: Use queryExec and not queryDelete in Releases.php
-	Chg: Remove require for automated.config.php
-	Chg: Move config files into newznab/config folder. Move BasePage, AdminPage and page to www/pages folder where they belong.
-	Fix: Fix processReleases call in switch.php and instantiation of classes
+	Chg: Add back catsplit to browse page
+	Upd: Update git hooks
+	Fix: Local episode lookup processing incorrectly as series 0
+	Chg: Updating tv_episode schema to allow by-date tv programmes to have more than one entry.
+	Upd: Add anidb id to video table, add the missing patch
+	Fix: Remove non-existant processTVDB from postprocess.
+	Fix: Typo in array
+	Chg: Revamp TV processing
+2015-10-17 DariusIII
+	Fix: Missing use statements
+	Fix: update_releases script and path to it in Forking.php
+	Fix: Autoloading and api errors
+2015-10-16 DariusIII
+	Fix: Add getPreviewCount and getPreviewRange functions used in admin preview list
+	Fix: Path to smarty dir
+	Fix: Instantiation issues in NameFixer.php
+2015-10-16 DariusIII
+	Fix: Missing use statements.
+2015-10-15 DariusIII
+	Chg: Remove snHandleerror from SpotNab.
+	Add: Example config file
+	Fix: Change Misc to Utility
+	Chg: Move patches to mysql subdir
+	Fix: Path to scrape.php in TmuxRun.php
+	Fix: Book categories in headermenu
+	Fix: WWW_DIR instances replaced with NN_WWW
+	Fix: More fixes to issues in ProcessAdditional
+	Fix: Fix more instantiation issues
+	Fix: PreDB error in update_predb
+	Fix: Add back the patch
+	Fix: Add missing use statements.
+	Fix: Missing exception error in Logger.php
+	Fix: Change instantiation of classes
+	Fix: Define missing NN_TMUX folder.
+	Fix: More errors.
+	Fix: even more errors.
+	Fix: Fix missing Releases fatal error in ProcessAdditional.
+	Fix: Error in PostProcess.php
+2015-10-15 DariusIII
+	Bug: remove tvrage patch
+2015-10-15 DariusIII
+	Upd: Update DbUpdate.php
+2015-10-15 DariusIII
+	Chg: Add tvrage_titles and tvrage_episodes tables for historic reference, they are emtpy and useless, but hell.
+		Remove references to automated.confiog.php.
+2015-10-15 DariusIII
+	Fix: Rename nzedb references to newznab in settings.example.php
+2015-10-15 DariusIII
+	Chg: Move all the configs into newznab/config/ folder.
+		Adjust patches and scripts to the new change, adapt patches for nn+ new releases table structure.
+2015-10-14 DariusIII
+	Chg: Change location of config files(located now in newznab/config folder) update scripts
+		to accomodate this change.
+2015-10-14 DariusIII
+	Fix: Possible fix for NULL nzb_guid values.
+2015-10-13 DariusIII
+	Fix: Wrong edits, still working on commit management
 2015-10-13 DariusIII
 	Fix: improve speed by replacing str_ireplace with strpos.Pushing again.
 2015-10-13 DariusIII

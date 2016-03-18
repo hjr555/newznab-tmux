@@ -11,8 +11,6 @@ use newznab\NZB;
 use newznab\RequestID;
 use newznab\Nfo;
 
-require_once(NN_LIBS . 'forkdaemon-php' . DS . 'fork_daemon.php');
-
 
 
 /**

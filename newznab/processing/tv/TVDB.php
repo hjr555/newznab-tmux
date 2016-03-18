@@ -1,9 +1,9 @@
 <?php
 namespace newznab\processing\tv;
 
-use libs\Moinax\TVDB\Client;
-use libs\Moinax\TVDB\CurlException;
-use libs\Moinax\TVDB\XmlException;
+use Moinax\TvDb\Client;
+use Moinax\TvDb\CurlException;
+use Moinax\TvDb\XmlException;
 use newznab\ReleaseImage;
 
 /**
@@ -16,7 +16,7 @@ class TVDB extends TV
 	const MATCH_PROBABILITY = 75;
 
 	/**
-	 * @var \libs\Moinax\TVDB\Client
+	 * @var \Moinax\TvDb\Client
 	 */
 	public $client;
 
@@ -128,14 +128,14 @@ class TVDB extends TV
 						// If it doesnt exist locally and lookups are allowed lets try to get it.
 						if ($this->echooutput) {
 							echo $this->pdo->log->primaryOver("Video ID for ") .
-									$this->pdo->log->headerOver($release['cleanname']) .
-									$this->pdo->log->primary(" not found in local db, checking web.");
+								$this->pdo->log->headerOver($release['cleanname']) .
+								$this->pdo->log->primary(" not found in local db, checking web.");
 						}
 
 						// Check if we have a valid country and set it in the array
 						$country = (isset($release['country']) && strlen($release['country']) == 2
-								? (string)$release['country']
-								: ''
+							? (string)$release['country']
+							: ''
 						);
 
 						// Get the show from TVDB
@@ -149,8 +149,8 @@ class TVDB extends TV
 
 					} else if ($this->echooutput) {
 						echo $this->pdo->log->primaryOver("Video ID for ") .
-								$this->pdo->log->headerOver($release['cleanname']) .
-								$this->pdo->log->primary(" found in local db, attempting episode match.");
+							$this->pdo->log->headerOver($release['cleanname']) .
+							$this->pdo->log->primary(" found in local db, attempting episode match.");
 					}
 
 					if (is_numeric($videoId) && $videoId > 0 && is_numeric($tvdbid) && $tvdbid > 0) {
@@ -178,10 +178,10 @@ class TVDB extends TV
 						if ($episode === false && $lookupSetting) {
 							// Send the request for the episode to TVDB
 							$tvdbEpisode = $this->getEpisodeInfo(
-									$tvdbid,
-									$seasonNo,
-									$episodeNo,
-									$release['airdate']
+								$tvdbid,
+								$seasonNo,
+								$episodeNo,
+								$release['airdate']
 							);
 
 							if ($tvdbEpisode) {
@@ -416,20 +416,20 @@ class TVDB extends TV
 		preg_match('/tt(?P<imdbid>\d{6,7})$/i', $show->imdbId, $imdb);
 
 		return [
-				'type'      => (int)parent::TYPE_TV,
-				'title'     => (string)$show->name,
-				'summary'   => (string)$show->overview,
-				'started'   => (string)$show->firstAired,
-				'publisher' => (string)$show->network,
-				'source'    => (int)parent::SOURCE_TVDB,
-				'imdb'      => (int)(isset($imdb['imdbid']) ? $imdb['imdbid'] : 0),
-				'tvdb'      => (int)$show->id,
-				'trakt'     => 0,
-				'tvrage'    => 0,
-				'tvmaze'    => 0,
-				'tmdb'      => 0,
-				'aliases'   => (!empty($show->aliasNames) ? (array)$show->aliasNames : ''),
-				'localzone' => "''"
+			'type'      => (int)parent::TYPE_TV,
+			'title'     => (string)$show->name,
+			'summary'   => (string)$show->overview,
+			'started'   => $show->firstAired->format('Y-m-d'),
+			'publisher' => (string)$show->network,
+			'source'    => (int)parent::SOURCE_TVDB,
+			'imdb'      => (int)(isset($imdb['imdbid']) ? $imdb['imdbid'] : 0),
+			'tvdb'      => (int)$show->id,
+			'trakt'     => 0,
+			'tvrage'    => 0,
+			'tvmaze'    => 0,
+			'tmdb'      => 0,
+			'aliases'   => (!empty($show->aliasNames) ? (array)$show->aliasNames : ''),
+			'localzone' => "''"
 		];
 	}
 
@@ -444,12 +444,12 @@ class TVDB extends TV
 	protected function formatEpisodeInfo($episode)
 	{
 		return [
-				'title'       => (string)$episode->name,
-				'series'      => (int)$episode->season,
-				'episode'     => (int)$episode->number,
-				'se_complete' => (string)'S' . sprintf('%02d', $episode->season) . 'E' . sprintf('%02d', $episode->number),
-				'firstaired'  => (string)$episode->firstAired,
-				'summary'     => (string)$episode->overview
+			'title'       => (string)$episode->name,
+			'series'      => (int)$episode->season,
+			'episode'     => (int)$episode->number,
+			'se_complete' => (string)'S' . sprintf('%02d', $episode->season) . 'E' . sprintf('%02d', $episode->number),
+			'firstaired'  => $episode->firstAired->format('Y-m-d'),
+			'summary'     => (string)$episode->overview
 		];
 	}
 }
