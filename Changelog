@@ -1,4 +1,5 @@
 2016-03-18 DariusIIi
+	* Upd: Add bunch of fixes from dev-composer branch
 	* Chg: Fix max_headers_iteration, change semantics for failed releases check
 	* Upd: Add back TV processing to NFO processing.
 2016-03-07 DariusIII
