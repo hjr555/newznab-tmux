@@ -1,4 +1,5 @@
 2016-03-18 DariusIIi
+	* Chg: Fix max_headers_iteration, change semantics for failed releases check
 	* Upd: Add back TV processing to NFO processing.
 2016-03-07 DariusIII
 	* Upd: Adjust the names of daytopost and postdate functions
