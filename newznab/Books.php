@@ -2,9 +2,9 @@
 namespace newznab;
 
 use newznab\db\Settings;
-use libs\ApaiIO\Configuration\GenericConfiguration;
-use libs\ApaiIO\Operations\Search;
-use libs\ApaiIO\ApaiIO;
+use ApaiIO\Configuration\GenericConfiguration;
+use ApaiIO\Operations\Search;
+use ApaiIO\ApaiIO;
 
 /*
  * Class for processing book info.
@@ -73,8 +73,8 @@ class Books
 	public function __construct(array $options =[])
 	{
 		$defaults = [
-				'Echo'     => false,
-				'Settings' => null,
+			'Echo'     => false,
+			'Settings' => null,
 		];
 		$options += $defaults;
 
@@ -295,20 +295,20 @@ class Books
 	public function getBookOrdering()
 	{
 		return array(
-				'title_asc',
-				'title_desc',
-				'posted_asc',
-				'posted_desc',
-				'size_asc',
-				'size_desc',
-				'files_asc',
-				'files_desc',
-				'stats_asc',
-				'stats_desc',
-				'releasedate_asc',
-				'releasedate_desc',
-				'author_asc',
-				'author_desc'
+			'title_asc',
+			'title_desc',
+			'posted_asc',
+			'posted_desc',
+			'size_asc',
+			'size_desc',
+			'files_asc',
+			'files_desc',
+			'stats_asc',
+			'stats_desc',
+			'releasedate_asc',
+			'releasedate_desc',
+			'author_asc',
+			'author_desc'
 		);
 	}
 
@@ -337,14 +337,14 @@ class Books
 		$conf = new GenericConfiguration();
 		try {
 			$conf
-					->setCountry('com')
-					->setAccessKey($this->pubkey)
-					->setSecretKey($this->privkey)
-					->setAssociateTag($this->asstag)
-					->setResponseTransformer('\libs\ApaiIO\ResponseTransformer\XmlToSimpleXmlObject');
+				->setCountry('com')
+				->setAccessKey($this->pubkey)
+				->setSecretKey($this->privkey)
+				->setAssociateTag($this->asstag)
+				->setResponseTransformer('\ApaiIO\ResponseTransformer\XmlToSimpleXmlObject');
 		} catch (\Exception $e) {
-			echo $e->getMessage();
-		}
+				echo $e->getMessage();
+			}
 
 		$search = new Search();
 		$search->setCategory('Books');
@@ -387,8 +387,8 @@ class Books
 		if ($total > 0) {
 			for ($i = 0; $i < $total; $i++) {
 				$this->processBookReleasesHelper(
-						$this->pdo->queryDirect(
-								sprintf('
+					$this->pdo->queryDirect(
+						sprintf('
 						SELECT searchname, id, categoryid
 						FROM releases
 						WHERE nzbstatus = 1 %s
@@ -396,7 +396,7 @@ class Books
 						AND categoryid in (%s)
 						ORDER BY postdate
 						DESC LIMIT %d', $this->renamed, $bookids[$i], $this->bookqty)
-						), $bookids[$i]
+					), $bookids[$i]
 				);
 			}
 		}
@@ -490,7 +490,7 @@ class Books
 
 				if ($this->echooutput) {
 					$this->pdo->log->doEcho(
-							$this->pdo->log->headerOver('Changing category to misc books: ') . $this->pdo->log->primary($releasename)
+						$this->pdo->log->headerOver('Changing category to misc books: ') . $this->pdo->log->primary($releasename)
 					);
 				}
 				$this->pdo->queryExec(sprintf('UPDATE releases SET categoryid = %s WHERE id = %d', Category::BOOKS_UNKNOWN, $releaseID));
@@ -499,10 +499,10 @@ class Books
 
 				if ($this->echooutput) {
 					$this->pdo->log->doEcho(
-							$this->pdo->log->headerOver('Changing category to magazines: ') . $this->pdo->log->primary($releasename)
+						$this->pdo->log->headerOver('Changing category to magazines: ') . $this->pdo->log->primary($releasename)
 					);
 				}
-				$this->pdo->queryExec(sprintf('UPDATE releases SET categoryid = %s WHERE id = %d', Category::BOOKS_COMICS, $releaseID));
+				$this->pdo->queryExec(sprintf('UPDATE releases SET categoryid = %s WHERE id = %d', Category::BOOKS_MAGAZINES, $releaseID));
 				return false;
 			} else if (!empty($releasename) && !preg_match('/^[a-z0-9]+$|^([0-9]+ ){1,}$|Part \d+/i', $releasename)) {
 				return $releasename;
@@ -600,36 +600,36 @@ class Books
 		$check = $this->pdo->queryOneRow(sprintf('SELECT id FROM bookinfo WHERE asin = %s', $this->pdo->escapeString($book['asin'])));
 		if ($check === false) {
 			$bookId = $this->pdo->queryInsert(
-					sprintf("
+				sprintf("
 								INSERT INTO bookinfo
 									(title, author, asin, isbn, ean, url, salesrank, publisher, publishdate, pages,
 									overview, genre, cover, createddate, updateddate)
 								VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d, now(), now())",
-							$this->pdo->escapeString($book['title']), $this->pdo->escapeString($book['author']),
-							$this->pdo->escapeString($book['asin']), $this->pdo->escapeString($book['isbn']),
-							$this->pdo->escapeString($book['ean']), $this->pdo->escapeString($book['url']),
-							$book['salesrank'], $this->pdo->escapeString($book['publisher']),
-							$this->pdo->escapeString($book['publishdate']), $book['pages'],
-							$this->pdo->escapeString($book['overview']), $this->pdo->escapeString($book['genre']),
-							$book['cover']
-					)
+					$this->pdo->escapeString($book['title']), $this->pdo->escapeString($book['author']),
+					$this->pdo->escapeString($book['asin']), $this->pdo->escapeString($book['isbn']),
+					$this->pdo->escapeString($book['ean']), $this->pdo->escapeString($book['url']),
+					$book['salesrank'], $this->pdo->escapeString($book['publisher']),
+					$this->pdo->escapeString($book['publishdate']), $book['pages'],
+					$this->pdo->escapeString($book['overview']), $this->pdo->escapeString($book['genre']),
+					$book['cover']
+				)
 			);
 		} else {
 			$bookId = $check['id'];
 			$this->pdo->queryExec(
-					sprintf('
+				sprintf('
 							UPDATE bookinfo
 							SET title = %s, author = %s, asin = %s, isbn = %s, ean = %s, url = %s, salesrank = %s, publisher = %s,
 								publishdate = %s, pages = %s, overview = %s, genre = %s, cover = %d, updateddate = NOW()
 							WHERE id = %d',
-							$this->pdo->escapeString($book['title']), $this->pdo->escapeString($book['author']),
-							$this->pdo->escapeString($book['asin']), $this->pdo->escapeString($book['isbn']),
-							$this->pdo->escapeString($book['ean']), $this->pdo->escapeString($book['url']),
-							$book['salesrank'], $this->pdo->escapeString($book['publisher']),
-							$this->pdo->escapeString($book['publishdate']), $book['pages'],
-							$this->pdo->escapeString($book['overview']), $this->pdo->escapeString($book['genre']),
-							$book['cover'], $bookId
-					)
+					$this->pdo->escapeString($book['title']), $this->pdo->escapeString($book['author']),
+					$this->pdo->escapeString($book['asin']), $this->pdo->escapeString($book['isbn']),
+					$this->pdo->escapeString($book['ean']), $this->pdo->escapeString($book['url']),
+					$book['salesrank'], $this->pdo->escapeString($book['publisher']),
+					$this->pdo->escapeString($book['publishdate']), $book['pages'],
+					$this->pdo->escapeString($book['overview']), $this->pdo->escapeString($book['genre']),
+					$book['cover'], $bookId
+				)
 			);
 		}
 
@@ -649,10 +649,10 @@ class Books
 		} else {
 			if ($this->echooutput) {
 				$this->pdo->log->doEcho(
-						$this->pdo->log->header('Nothing to update: ') .
-						$this->pdo->log->header($book['author'] .
-								' - ' .
-								$book['title'])
+					$this->pdo->log->header('Nothing to update: ') .
+					$this->pdo->log->header($book['author'] .
+						' - ' .
+						$book['title'])
 				);
 			}
 		}

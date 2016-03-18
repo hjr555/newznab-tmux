@@ -4,10 +4,6 @@ use newznab\db\Settings;
 use \newznab\processing\PostProcess;
 use newznab\utility\Utility;
 
-require_once NN_LIBS . 'getid3/getid3/getid3.php';
-require_once NN_LIBS . 'rarinfo/par2info.php';
-require_once NN_LIBS . 'rarinfo/sfvinfo.php';
-
 /**
  * Class Nfo
  * Class for handling fetching/storing of NFO files.
@@ -167,7 +163,7 @@ class Nfo
 			}
 
 			// If above checks couldn't  make a categorical identification, Use GetId3 to check if it's an image/video/rar/zip etc..
-			$getid3 = new \getid3();
+			$getid3 = new \getID3();
 			$check = $getid3->analyze($tmpPath);
 			@unlink($tmpPath);
 			if (isset($check['error'])) {

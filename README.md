@@ -10,8 +10,8 @@ I started adapting some of more interesting scripts from nZEDb, but they require
 
  CD to the root of your newznab install, ie.  cd /var/www/newznab
  Next steps are very important:
- 
- 		git init 
+
+ 		git init
  		git remote add origin https://github.com/DariusIII/newznab-tmux.git
  		git fetch
  		git reset --hard origin/your_wanted_branch, ie. git reset --hard origin/master
@@ -27,10 +27,18 @@ I started adapting some of more interesting scripts from nZEDb, but they require
 	You need to chmod to 777 following folders now:
 	resources/*
 	libs/smarty/templates_c
-	nzbfiles/ 
+	nzbfiles/
 
 	You need to add an alias to your apache/nginx conf of your indexer:
 	Alias /covers /path/to/newznab/resources/covers
+
+# Composer
+
+  Note: Newznab-tmux uses composer to install required libraries. To install composer
+  		follow instructons located at: https://getcomposer.org/download/
+  		When you have downloaded and installed composer,
+  		run "php composer.phar install" to install dependencies and create required
+  		folders and autoloader for them.
 
 # yEnc:
 
