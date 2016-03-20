@@ -1,9 +1,6 @@
 <?php
 namespace newznab\processing\post;
 
-require_once NN_LIBS . 'rarinfo/archiveinfo.php';
-require_once NN_LIBS . 'rarinfo/par2info.php';
-
 use newznab\db\Settings;
 use newznab\utility\Utility;
 use newznab\NZB;
@@ -40,7 +37,7 @@ class ProcessAdditional
 
 	/**
 	 * Releases to work on.
-	 * @var Array
+	 * @var array
 	 */
 	protected $_releases;
 
@@ -52,7 +49,7 @@ class ProcessAdditional
 
 	/**
 	 * Current release we are working on.
-	 * @var Array
+	 * @var array
 	 */
 	protected $_release;
 
@@ -76,6 +73,11 @@ class ProcessAdditional
 	 * @var \Par2Info
 	 */
 	protected $_par2Info;
+
+	/**
+	 * @var \SrrInfo
+	 */
+	protected $_SRRInfo;
 
 	/**
 	 * @var \ArchiveInfo
@@ -273,6 +275,113 @@ class ProcessAdditional
 	protected $_videoFileRegex;
 
 	/**
+	 * Have we created a video file for the current release?
+	 * @var bool
+	 */
+	protected $_foundVideo;
+
+	/**
+	 * Have we found MediaInfo data for a Video for the current release?
+	 * @var bool
+	 */
+	protected $_foundMediaInfo;
+
+	/**
+	 * Have we found MediaInfo data for a Audio file for the current release?
+	 * @var bool
+	 */
+	protected $_foundAudioInfo;
+
+	/**
+	 * Have we created a short Audio file sample for the current release?
+	 * @var bool
+	 */
+	protected $_foundAudioSample;
+
+	/**
+	 * Extension of the found audio file (MP3/FLAC/etc).
+	 * @var string
+	 */
+	protected $_AudioInfoExtension;
+
+	/**
+	 * Have we downloaded a JPG file for the current release?
+	 * @var bool
+	 */
+	protected $_foundJPGSample;
+
+	/**
+	 * Have we created a Video JPG image sample for the current release?
+	 * @var bool
+	 */
+	protected $_foundSample;
+
+	/**
+	 * Have we found PAR2 info on this release?
+	 * @var bool
+	 */
+	protected $_foundPAR2Info;
+
+	/**
+	 * Have we found SRR info on this release?
+	 * @var bool
+	 */
+	protected $_foundSRRInfo;
+
+	/**
+	 * Message id's for found content to download.
+	 * @var array
+	 */
+	protected $_sampleMessageIDs;
+	protected $_JPGMessageIDs;
+	protected $_MediaInfoMessageIDs;
+	protected $_AudioInfoMessageIDs;
+	protected $_RARFileMessageIDs;
+
+	/**
+	 * Password status of the current release.
+	 * @var array
+	 */
+	protected $_passwordStatus;
+
+	/**
+	 * Does the current release have a password?
+	 * @var bool
+	 */
+	protected $_releaseHasPassword;
+
+	/**
+	 * Does the current release have an NFO file?
+	 * @var bool
+	 */
+	protected $_releaseHasNoNFO;
+
+	/**
+	 * Name of the current release's usenet group.
+	 * @var string
+	 */
+	protected $_releaseGroupName;
+
+	/**
+	 * Number of file information added to DB (from rar/zip/par2 contents).
+	 * @var int
+	 */
+	protected $_addedFileInfo;
+
+	/**
+	 * Number of file information we found from RAR/ZIP.
+	 * (if some of it was already in DB, this count goes up, while the count above does not)
+	 * @var int
+	 */
+	protected $_totalFileInfo;
+
+	/**
+	 * How many compressed (rar/zip) files have we checked.
+	 * @var int
+	 */
+	protected $_compressedFilesChecked;
+
+	/**
 	 * @param array $options Class instances / echo to cli.
 	 */
 	public function __construct(array $options = [])
@@ -308,6 +417,7 @@ class ProcessAdditional
 		$this->_releaseExtra = ($options['ReleaseExtra'] instanceof ReleaseExtra ? $options['ReleaseExtra'] : new ReleaseExtra($this->pdo));
 		$this->_releaseImage = ($options['ReleaseImage'] instanceof ReleaseImage ? $options['ReleaseImage'] : new ReleaseImage($this->pdo));
 		$this->_par2Info = new \Par2Info();
+		$this->_srrInfo = new \SrrInfo();
 		$this->_nfo = ($options['Nfo'] instanceof Nfo ? $options['Nfo'] : new Nfo(['Echo' => $this->_echoCLI, 'Settings' => $this->pdo]));
 		$this->sphinx = ($options['SphinxSearch'] instanceof SphinxSearch ? $options['SphinxSearch'] : new SphinxSearch());
 
@@ -516,7 +626,7 @@ class ProcessAdditional
 		$this->_releases = $this->pdo->query(
 			sprintf(
 				'
-				SELECT r.id, r.guid, r.name, c.disablepreview, r.size, r.groupid, r.nfostatus, r.completion, r.categoryid, r.searchname, r.prehashid
+				SELECT r.id, r.guid, r.name, c.disablepreview, r.size, r.groupid, r.nfostatus, r.completion, r.categoryid, r.searchname, r.preid
 				FROM releases r
 				LEFT JOIN category c ON c.id = r.categoryid
 				WHERE r.nzbstatus = 1
@@ -1120,7 +1230,7 @@ class ProcessAdditional
 				$this->pdo->queryOneRow(
 					sprintf(
 						'
-						SELECT id FROM releasefiles
+						SELECT releaseid FROM release_files
 						WHERE releaseid = %d
 						AND name = %s
 						AND size = %d',
@@ -1214,8 +1324,11 @@ class ProcessAdditional
 				if (is_file($file)) {
 
 					// Process PAR2 files.
-					if ($this->_foundPAR2Info === false && preg_match('/\.par2$/', $file)) {
+					if ($this->_foundPAR2Info === false && preg_match('/\.par2$/i', $file)) {
 						$this->_siftPAR2Info($file);
+					} // Process SRR files
+					else if ($this->_foundSRRInfo === false && preg_match('/\.srr$/i', $file)) {
+						$this->_siftSRRInfo($file);
 					} // Process NFO files.
 					else if ($this->_releaseHasNoNFO === true && preg_match('/(\.(nfo|inf|ofn)|info\.txt)$/i', $file)) {
 						$this->_processNfoFile($file);
@@ -1241,7 +1354,7 @@ class ProcessAdditional
 					} // Check if it's alt.binaries.u4e file.
 					else if (in_array($this->_releaseGroupName, ['alt.binaries.u4e', 'alt.binaries.mom']) &&
 						preg_match('/Linux_2rename\.sh/i', $file) &&
-						($this->_release['categoryid'] == Category::CAT_MISC_HASHED || $this->_release['categoryid'] == Category::CAT_MISC_OTHER)
+						($this->_release['categoryid'] == Category::OTHER_HASHED || $this->_release['categoryid'] == Category::OTHER_MISC)
 					) {
 						$this->_processU4ETitle($file);
 					}
@@ -1529,7 +1642,7 @@ class ProcessAdditional
 			$iSQL = ', haspreview = 1';
 		}
 
-		if (is_file($this->_releaseImage->vidSavePath . $this->_release['guid'] . '.ogg')) {
+		if (is_file($this->_releaseImage->vidSavePath . $this->_release['guid'] . '.ogv')) {
 			$vSQL = ', videostatus = 1';
 		}
 
@@ -1541,9 +1654,9 @@ class ProcessAdditional
 		$releaseFiles = $this->pdo->queryOneRow(
 			sprintf(
 				'
-				SELECT COUNT(releasefiles.releaseid) AS count,
-				SUM(releasefiles.size) AS size
-				FROM releasefiles
+				SELECT COUNT(release_files.releaseid) AS count,
+				SUM(release_files.size) AS size
+				FROM release_files
 				WHERE releaseid = %d',
 				$this->_release['id']
 			)
@@ -1657,14 +1770,14 @@ class ProcessAdditional
 			)
 		);
 
-		$musicParent = (string)Category::CAT_PARENT_MUSIC;
+		$musicParent = (string)Category::MUSIC_ROOT;
 		if ($rQuery === false || !preg_match(
 				sprintf(
 					'/%d\d{3}|%d|%d|%d/',
 					$musicParent[0],
-					Category::CAT_MISC_OTHER,
-					Category::CAT_MOVIE_OTHER,
-					Category::CAT_TV_OTHER
+					Category::OTHER_MISC,
+					Category::MOVIE_OTHER,
+					Category::TV_OTHER
 				),
 				$rQuery['id']
 			)
@@ -1692,7 +1805,7 @@ class ProcessAdditional
 
 							if (isset($track['Album']) && isset($track['Performer'])) {
 
-								if (NN_RENAME_MUSIC_MEDIAINFO && $this->_release['prehashid'] == 0) {
+								if (NN_RENAME_MUSIC_MEDIAINFO && $this->_release['preid'] == 0) {
 									// Make the extension upper case.
 									$ext = strtoupper($fileExtension);
 
@@ -1705,9 +1818,9 @@ class ProcessAdditional
 
 									// Get the category or try to determine it.
 									if ($ext === 'MP3') {
-										$newCat = Category::CAT_MUSIC_MP3;
+										$newCat = Category::MUSIC_MP3;
 									} else if ($ext === 'FLAC') {
-										$newCat = Category::CAT_MUSIC_LOSSLESS;
+										$newCat = Category::MUSIC_LOSSLESS;
 									} else {
 										$newCat = $this->_categorize->determineCategory($rQuery['groupid'],$newName);
 									}
@@ -1968,7 +2081,7 @@ class ProcessAdditional
 		if (is_file($fileLocation)) {
 
 			// Create a filename to store the temp file.
-			$fileName = ($this->tmpPath . 'zzzz' . $this->_release['guid'] . '.ogg');
+			$fileName = ($this->tmpPath . 'zzzz' . $this->_release['guid'] . '.ogv');
 
 			$newMethod = false;
 			// If wanted sample length is less than 60, try to get sample from the end of the video.
@@ -2039,7 +2152,7 @@ class ProcessAdditional
 			if (is_file($fileName)) {
 
 				// Create a path to where the file should be moved.
-				$newFile = ($this->_releaseImage->vidSavePath . $this->_release['guid'] . '.ogg');
+				$newFile = ($this->_releaseImage->vidSavePath . $this->_release['guid'] . '.ogv');
 
 				// Try to move the file to the new path.
 				$renamed = @rename($fileName, $newFile);
@@ -2157,17 +2270,7 @@ class ProcessAdditional
 			$releaseInfo['proc_pp'] == 0 &&
 			in_array(
 				((int)$this->_release['categoryid']),
-				[
-					Category::CAT_BOOK_OTHER,
-					Category::CAT_GAME_OTHER,
-					Category::CAT_MOVIE_OTHER,
-					Category::CAT_MUSIC_OTHER,
-					Category::CAT_PC_MOBILEOTHER,
-					Category::CAT_TV_OTHER,
-					Category::CAT_MISC_HASHED,
-					Category::CAT_XXX_OTHER,
-					Category::CAT_MISC_OTHER
-				]
+				Category::OTHERS_GROUP
 			)
 		) {
 			$foundName = false;
@@ -2192,7 +2295,7 @@ class ProcessAdditional
 				if ($filesAdded < 11 &&
 					$this->pdo->queryOneRow(
 						sprintf(
-							'SELECT id FROM releasefiles WHERE releaseid = %d AND name = %s',
+							'SELECT releaseid FROM release_files WHERE releaseid = %d AND name = %s',
 							$this->_release['id'], $this->pdo->escapeString($file['name'])
 						)
 					) === false
@@ -2225,6 +2328,70 @@ class ProcessAdditional
 			)
 		);
 		$this->_foundPAR2Info = true;
+	}
+
+	/**
+	 * Get file info from inside SRR and attempt to get a release name.
+	 *
+	 * @param string $srr
+	 */
+	protected function _siftSRRInfo($srr)
+	{
+		$foundMatch = false;
+
+		$query = $this->pdo->queryOneRow(
+			sprintf('
+				SELECT
+					r.id, r.groupid, r.categoryid, r.name, r.searchname,
+					UNIX_TIMESTAMP(r.postdate) AS post_date,
+					r.id AS releaseid
+				FROM releases r
+				WHERE r.isrenamed = 0
+				AND r.preid = 0
+				AND r.id = %d',
+				$this->_release['id']
+			)
+		);
+
+		if ($query === false) {
+			return;
+		}
+
+		// Put the SRR into SrrInfo, check if there's an error.
+		$this->_srrInfo->open($srr);
+		if ($this->_srrInfo->error) {
+			$this->pdo->log->doEcho($this->pdo->log->primaryOver("-"));
+			return;
+		}
+
+		// Get the file list from SrrInfo.
+		$summary = $this->_srrInfo->getSummary();
+		if ($summary !== false && empty($summary['error'])) {
+			$this->pdo->log->doEcho($this->pdo->log->primaryOver("+"));
+
+			// Try to get a Pre Match by the OSO release name.
+			if (isset($summary['oso_info']['name']) && !empty($summary['oso_info']['name'])) {
+				$query['textstring'] = $summary['oso_info']['name'];
+				$foundMatch = $this->_nameFixer->checkName($query, $this->_echoCLI, 'SRR, ', 1, 1, true);
+			}
+			// Loop through the stored files in the SRR and try to get a Pre Match
+			if ($foundMatch === false && is_array($summary['stored_files']) && !empty($summary['stored_files'])) {
+				foreach ($summary['stored_files'] AS $storedFile) {
+					if ($foundMatch === true) {
+						break;
+					} else if (isset($storedFile['name']) && !empty($storedFile['name'])) {
+						$query['textstring'] = Utility::cutStringUsingLast('.', $storedFile['name'], 'left', false);
+						$foundMatch = $this->_nameFixer->checkName($query, $this->_echoCLI, 'SRR, ', 1, 1, true);
+					}
+				}
+			}
+			// This field is rarely populated but worth a shot for a rename
+			if ($foundMatch === false && isset($summary['file_name']) && !empty($summary['file_name'])) {
+				$query['textstring'] = Utility::cutStringUsingLast('.', $summary['file_name'], 'left', false);
+				$foundMatch = $this->_nameFixer->checkName($query, $this->_echoCLI, 'SRR, ', 1, 1, true);
+			}
+		}
+		$this->_foundSRRInfo = $foundMatch;
 	}
 
 	/**
@@ -2304,7 +2471,7 @@ class ProcessAdditional
 							'
 							UPDATE releases
 								SET videos_id = 0, tv_episodes_id = 0, imdbid = NULL, musicinfoid = NULL,
-								consoleinfoid = NULL, bookinfoid = NULL, anidbid = NULL, prehashid = 0,
+								consoleinfoid = NULL, bookinfoid = NULL, anidbid = NULL, preid = 0,
 								searchname = %s, isrenamed = 1, iscategorized = 1, proc_files = 1, categoryid = %d
 							WHERE id = %d',
 							$newTitle,
@@ -2419,107 +2586,6 @@ class ProcessAdditional
 	}
 
 	/**
-	 * Have we created a video file for the current release?
-	 * @var bool
-	 */
-	protected $_foundVideo;
-
-	/**
-	 * Have we found MediaInfo data for a Video for the current release?
-	 * @var bool
-	 */
-	protected $_foundMediaInfo;
-
-	/**
-	 * Have we found MediaInfo data for a Audio file for the current release?
-	 * @var bool
-	 */
-	protected $_foundAudioInfo;
-
-	/**
-	 * Have we created a short Audio file sample for the current release?
-	 * @var bool
-	 */
-	protected $_foundAudioSample;
-
-	/**
-	 * Extension of the found audio file (MP3/FLAC/etc).
-	 * @var string
-	 */
-	protected $_AudioInfoExtension;
-
-	/**
-	 * Have we downloaded a JPG file for the current release?
-	 * @var bool
-	 */
-	protected $_foundJPGSample;
-
-	/**
-	 * Have we created a Video JPG image sample for the current release?
-	 * @var bool
-	 */
-	protected $_foundSample;
-
-	/**
-	 * Have we found PAR2 info on this release?
-	 * @var bool
-	 */
-	protected $_foundPAR2Info;
-
-	/**
-	 * Message id's for found content to download.
-	 * @var array
-	 */
-	protected $_sampleMessageIDs;
-	protected $_JPGMessageIDs;
-	protected $_MediaInfoMessageIDs;
-	protected $_AudioInfoMessageIDs;
-	protected $_RARFileMessageIDs;
-
-	/**
-	 * Password status of the current release.
-	 * @var array
-	 */
-	protected $_passwordStatus;
-
-	/**
-	 * Does the current release have a password?
-	 * @var bool
-	 */
-	protected $_releaseHasPassword;
-
-	/**
-	 * Does the current release have an NFO file?
-	 * @var bool
-	 */
-	protected $_releaseHasNoNFO;
-
-	/**
-	 * Name of the current release's usenet group.
-	 * @var string
-	 */
-	protected $_releaseGroupName;
-
-	/**
-	 * Number of file information added to DB (from rar/zip/par2 contents).
-	 * @var int
-	 */
-	protected $_addedFileInfo;
-
-	/**
-	 * Number of file information we found from RAR/ZIP.
-	 * (if some of it was already in DB, this count goes up, while the count above does not)
-	 * @var int
-	 */
-	protected $_totalFileInfo;
-
-	/**
-	 * How many compressed (rar/zip) files have we checked.
-	 * @var int
-	 */
-	protected $_compressedFilesChecked;
-
-	/**
 	 * Reset some variables for the current release.
 	 */
 	protected function _resetReleaseStatus()
@@ -2533,6 +2599,7 @@ class ProcessAdditional
 		$this->_foundSample = ($this->_processThumbnails ? false : true);
 		$this->_foundSample = (($this->_release['disablepreview'] == 1) ? true : false);
 		$this->_foundPAR2Info = false;
+		$this->_foundSRRInfo = false;
 
 		$this->_passwordStatus = [Releases::PASSWD_NONE];
 		$this->_releaseHasPassword = false;

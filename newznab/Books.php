@@ -2,9 +2,9 @@
 namespace newznab;
 
 use newznab\db\Settings;
-use libs\ApaiIO\Configuration\GenericConfiguration;
-use libs\ApaiIO\Operations\Search;
-use libs\ApaiIO\ApaiIO;
+use ApaiIO\Configuration\GenericConfiguration;
+use ApaiIO\Operations\Search;
+use ApaiIO\ApaiIO;
 
 /*
  * Class for processing book info.
@@ -87,7 +87,7 @@ class Books
 		$this->bookqty = ($this->pdo->getSetting('maxbooksprocessed') != '') ? $this->pdo->getSetting('maxbooksprocessed') : 300;
 		$this->sleeptime = ($this->pdo->getSetting('amazonsleep') != '') ? $this->pdo->getSetting('amazonsleep') : 1000;
 		$this->imgSavePath = NN_COVERS . 'book' . DS;
-		$this->bookreqids = ($this->pdo->getSetting('book_reqids') == null || $this->pdo->getSetting('book_reqids') == "") ? 7010 : $this->pdo->getSetting('book_reqids');
+		$this->bookreqids = ($this->pdo->getSetting('book_reqids') == null || $this->pdo->getSetting('book_reqids') == "") ? Category::BOOKS_MAGAZINES : $this->pdo->getSetting('book_reqids');
 		$this->renamed = '';
 		if ($this->pdo->getSetting('lookupbooks') == 2) {
 			$this->renamed = 'AND isrenamed = 1';
@@ -152,34 +152,19 @@ class Books
 		return $res['num'];
 	}
 
-	public function getBookCount($cat, $maxage = -1, $excludedcats = [])
-	{
-		$res = $this->pdo->queryOneRow(
-			sprintf(
-				"SELECT COUNT(DISTINCT r.bookinfoid) AS num FROM releases r
-				INNER JOIN bookinfo boo ON boo.id = r.bookinfoid AND boo.title != '' and boo.cover = 1
-				WHERE r.nzbstatus = 1 AND  r.passwordstatus %s
-				AND %s %s %s %s",
-				Releases::showPasswords($this->pdo),
-				$this->getBrowseBy(),
-				(count($cat) > 0 && $cat[0] != -1 ? (new Category(['Settings' => $this->pdo]))->getCategorySearch($cat) : ''),
-				($maxage > 0 ? sprintf(' AND r.postdate > NOW() - INTERVAL %d DAY ', $maxage) : ''),
-				(count($excludedcats) > 0 ? ' AND r.categoryid NOT IN (' . implode(',', $excludedcats) . ')' : '')
-			)
-		);
-		return $res['num'];
-	}
-
-	public function getBookRange($cat, $start, $num, $orderby, $excludedcats =[])
+	/**
+	 * @param       $cat
+	 * @param       $start
+	 * @param       $num
+	 * @param       $orderby
+	 * @param array $excludedcats
+	 *
+	 * @return array
+	 */
+	public function getBookRange($cat, $start, $num, $orderby, $excludedcats = [])
 	{
 
 		$browseby = $this->getBrowseBy();
-
-		if ($start === false) {
-			$limit = '';
-		} else {
-			$limit = ' LIMIT ' . $num . ' OFFSET ' . $start;
-		}
 
 		$catsrch = '';
 		if (count($cat) > 0 && $cat[0] != -1) {
@@ -197,33 +182,83 @@ class Books
 		}
 
 		$order = $this->getBookOrder($orderby);
-		$sql = sprintf(
-			"SELECT GROUP_CONCAT(r.id ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_id, "
-			. "GROUP_CONCAT(r.rarinnerfilecount ORDER BY r.postdate DESC SEPARATOR ',') as grp_rarinnerfilecount, "
-			. "GROUP_CONCAT(r.haspreview ORDER BY r.postdate DESC SEPARATOR ',') AS grp_haspreview, "
-			. "GROUP_CONCAT(r.passwordstatus ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_password, "
-			. "GROUP_CONCAT(r.guid ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_guid, "
-			. "GROUP_CONCAT(rn.id ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_nfoid, "
-			. "GROUP_CONCAT(groups.name ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_grpname, "
-			. "GROUP_CONCAT(r.searchname ORDER BY r.postdate DESC SEPARATOR '#') AS grp_release_name, "
-			. "GROUP_CONCAT(r.postdate ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_postdate, "
-			. "GROUP_CONCAT(r.size ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_size, "
-			. "GROUP_CONCAT(r.totalpart ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_totalparts, "
-			. "GROUP_CONCAT(r.comments ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_comments, "
-			. "GROUP_CONCAT(r.grabs ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_grabs, "
-			. "boo.*, r.bookinfoid, groups.name AS group_name, rn.id as nfoid FROM releases r "
-			. "LEFT OUTER JOIN groups ON groups.id = r.groupid "
-			. "LEFT OUTER JOIN releasenfo rn ON rn.releaseid = r.id "
-			. "INNER JOIN bookinfo boo ON boo.id = r.bookinfoid "
-			. "WHERE r.nzbstatus = 1 AND boo.cover = 1 AND boo.title != '' AND "
-			. "r.passwordstatus %s AND %s %s %s %s "
-			. "GROUP BY boo.id ORDER BY %s %s" . $limit,
-			Releases::showPasswords($this->pdo),
-			$browseby, $catsrch, $maxage, $exccatlist, $order[0], $order[1]
+
+		$books = $this->pdo->queryCalc(
+				sprintf("
+				SELECT SQL_CALC_FOUND_ROWS boo.id,
+					GROUP_CONCAT(r.id ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_id
+				FROM bookinfo boo
+				LEFT JOIN releases r ON boo.id = r.bookinfoid
+				WHERE r.nzbstatus = 1
+				AND boo.cover = 1
+				AND boo.title != ''
+				AND r.passwordstatus %s
+				AND %s %s %s %s
+				GROUP BY boo.id
+				ORDER BY %s %s %s",
+						Releases::showPasswords($this->pdo),
+						$browseby,
+						$catsrch,
+						$maxage,
+						$exccatlist,
+						$order[0],
+						$order[1],
+						($start === false ? '' : ' LIMIT ' . $num . ' OFFSET ' . $start)
+				), true, NN_CACHE_EXPIRY_MEDIUM
 		);
 
-		return $this->pdo->query($sql, true, NN_CACHE_EXPIRY_MEDIUM);
+		$bookIDs = $releaseIDs = false;
+
+		if (is_array($books['result'])) {
+			foreach ($books['result'] AS $book => $id) {
+				$bookIDs[] = $id['id'];
+				$releaseIDs[] = $id['grp_release_id'];
+			}
+		}
+
+		$sql = sprintf("
+			SELECT
+				GROUP_CONCAT(r.id ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_id,
+				GROUP_CONCAT(r.rarinnerfilecount ORDER BY r.postdate DESC SEPARATOR ',') as grp_rarinnerfilecount,
+				GROUP_CONCAT(r.haspreview ORDER BY r.postdate DESC SEPARATOR ',') AS grp_haspreview,
+				GROUP_CONCAT(r.passwordstatus ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_password,
+				GROUP_CONCAT(r.guid ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_guid,
+				GROUP_CONCAT(rn.id ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_nfoid,
+				GROUP_CONCAT(g.name ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_grpname,
+				GROUP_CONCAT(r.searchname ORDER BY r.postdate DESC SEPARATOR '#') AS grp_release_name,
+				GROUP_CONCAT(r.postdate ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_postdate,
+				GROUP_CONCAT(r.size ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_size,
+				GROUP_CONCAT(r.totalpart ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_totalparts,
+				GROUP_CONCAT(r.comments ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_comments,
+				GROUP_CONCAT(r.grabs ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_grabs,
+				GROUP_CONCAT(df.failed ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_failed,
+			boo.*,
+			r.bookinfoid,
+			g.name AS group_name,
+			rn.id AS nfoid
+			FROM releases r
+			LEFT OUTER JOIN groups g ON g.id = r.groupid
+			LEFT OUTER JOIN releasenfo rn ON rn.releaseid = r.id
+			LEFT OUTER JOIN dnzb_failures df ON df.release_id = r.id
+			INNER JOIN bookinfo boo ON boo.id = r.bookinfoid
+			WHERE boo.id IN (%s)
+			AND r.id IN (%s)
+			AND %s
+			GROUP BY boo.id
+			ORDER BY %s %s",
+				(is_array($bookIDs) ? implode(',', $bookIDs) : -1),
+				(is_array($releaseIDs) ? implode(',', $releaseIDs) : -1),
+				$catsrch,
+				$order[0],
+				$order[1]
+		);
+		$return = $this->pdo->query($sql, true, NN_CACHE_EXPIRY_MEDIUM);
+		if (!empty($return)) {
+			$return[0]['_totalcount'] = (isset($books['total']) ? $books['total'] : 0);
+		}
+		return $return;
 	}
+
 
 	public function getBookOrder($orderby)
 	{
@@ -306,7 +341,7 @@ class Books
 				->setAccessKey($this->pubkey)
 				->setSecretKey($this->privkey)
 				->setAssociateTag($this->asstag)
-				->setResponseTransformer('\libs\ApaiIO\ResponseTransformer\XmlToSimpleXmlObject');
+				->setResponseTransformer('\ApaiIO\ResponseTransformer\XmlToSimpleXmlObject');
 		} catch (\Exception $e) {
 				echo $e->getMessage();
 			}
@@ -458,7 +493,7 @@ class Books
 						$this->pdo->log->headerOver('Changing category to misc books: ') . $this->pdo->log->primary($releasename)
 					);
 				}
-				$this->pdo->queryExec(sprintf('UPDATE releases SET categoryid = %d WHERE id = %d', 7050, $releaseID));
+				$this->pdo->queryExec(sprintf('UPDATE releases SET categoryid = %s WHERE id = %d', Category::BOOKS_UNKNOWN, $releaseID));
 				return false;
 			} else if (preg_match('/^([a-z0-9ü!]+ ){1,2}(N|Vol)?\d{1,4}(a|b|c)?$|^([a-z0-9]+ ){1,2}(Jan( |unar|$)|Feb( |ruary|$)|Mar( |ch|$)|Apr( |il|$)|May(?![a-z0-9])|Jun( |e|$)|Jul( |y|$)|Aug( |ust|$)|Sep( |tember|$)|O(c|k)t( |ober|$)|Nov( |ember|$)|De(c|z)( |ember|$))/i', $releasename) && !preg_match('/Part \d+/i', $releasename)) {
 
@@ -467,7 +502,7 @@ class Books
 						$this->pdo->log->headerOver('Changing category to magazines: ') . $this->pdo->log->primary($releasename)
 					);
 				}
-				$this->pdo->queryExec(sprintf('UPDATE releases SET categoryid = %d WHERE id = %d', 7030, $releaseID));
+				$this->pdo->queryExec(sprintf('UPDATE releases SET categoryid = %s WHERE id = %d', Category::BOOKS_MAGAZINES, $releaseID));
 				return false;
 			} else if (!empty($releasename) && !preg_match('/^[a-z0-9]+$|^([0-9]+ ){1,}$|Part \d+/i', $releasename)) {
 				return $releasename;

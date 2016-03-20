@@ -8,80 +8,98 @@ use newznab\db\Settings;
  */
 class Category
 {
-	const CAT_GAME_NDS = 1010;
-	const CAT_GAME_PSP = 1020;
-	const CAT_GAME_WII = 1030;
-	const CAT_GAME_XBOX = 1040;
-	const CAT_GAME_XBOX360 = 1050;
-	const CAT_GAME_WIIWARE = 1060;
-	const CAT_GAME_XBOX360DLC = 1070;
-	const CAT_GAME_PS3 = 1080;
-	const CAT_GAME_OTHER = 1090;
-	const CAT_GAME_3DS = 1110;
-	const CAT_GAME_PSVITA = 1120;
-	const CAT_GAME_WIIU = 1130;
-	const CAT_GAME_XBOXONE = 1140;
-	const CAT_GAME_PS4 = 1180;
-	const CAT_MOVIE_FOREIGN = 2010;
-	const CAT_MOVIE_OTHER = 2020;
-	const CAT_MOVIE_SD = 2030;
-	const CAT_MOVIE_HD = 2040;
-	const CAT_MOVIE_3D = 2050;
-	const CAT_MOVIE_BLURAY = 2060;
-	const CAT_MOVIE_DVD = 2070;
-	const CAT_MOVIE_WEBDL = 2080;
-	const CAT_MUSIC_MP3 = 3010;
-	const CAT_MUSIC_VIDEO = 3020;
-	const CAT_MUSIC_AUDIOBOOK = 3030;
-	const CAT_MUSIC_LOSSLESS = 3040;
-	const CAT_MUSIC_OTHER = 3050;
-	const CAT_MUSIC_FOREIGN = 3060;
-	const CAT_PC_0DAY = 4010;
-	const CAT_PC_ISO = 4020;
-	const CAT_PC_MAC = 4030;
-	const CAT_PC_MOBILEOTHER = 4040;
-	const CAT_PC_GAMES = 4050;
-	const CAT_PC_MOBILEIOS = 4060;
-	const CAT_PC_MOBILEANDROID = 4070;
-	const CAT_TV_WEBDL = 5010;
-	const CAT_TV_FOREIGN = 5020;
-	const CAT_TV_SD = 5030;
-	const CAT_TV_HD = 5040;
-	const CAT_TV_OTHER = 5050;
-	const CAT_TV_SPORT = 5060;
-	const CAT_TV_ANIME = 5070;
-	const CAT_TV_DOCU = 5080;
-	const CAT_XXX_DVD = 6010;
-	const CAT_XXX_WMV = 6020;
-	const CAT_XXX_XVID = 6030;
-	const CAT_XXX_X264 = 6040;
-	const CAT_XXX_CLIPHD = 6041;
-	const CAT_XXX_CLIPSD = 6042;
-	const CAT_XXX_PACK = 6050;
-	const CAT_XXX_IMAGESET = 6060;
-	const CAT_XXX_OTHER = 6070;
-	const CAT_XXX_SD = 6080;
-	const CAT_XXX_WEBDL = 6090;
-	const CAT_BOOK_MAGS = 7010;
-	const CAT_BOOK_EBOOK = 7020;
-	const CAT_BOOK_COMICS = 7030;
-	const CAT_BOOK_TECHNICAL = 7040;
-	const CAT_BOOK_OTHER = 7050;
-	const CAT_BOOK_FOREIGN = 7060;
-	const CAT_MISC_OTHER = 8010;
-	const CAT_MISC_HASHED = 8020;
-	const CAT_PARENT_GAME = 1000;
-	const CAT_PARENT_MOVIE = 2000;
-	const CAT_PARENT_MUSIC = 3000;
-	const CAT_PARENT_PC = 4000;
-	const CAT_PARENT_TV = 5000;
-	const CAT_PARENT_XXX = 6000;
-	const CAT_PARENT_BOOK = 7000;
-	const CAT_PARENT_MISC = 8000;
-	const CAT_NOT_DETERMINED = 7900;
+
+	/**
+	 * Category constants.
+	 * Do NOT use the values, as they may change, always use the constant - that's what it's for.
+	 */
+	const OTHER_MISC = '0010';
+	const OTHER_HASHED = '0020';
+	const GAME_NDS = '1010';
+	const GAME_PSP = '1020';
+	const GAME_WII = '1030';
+	const GAME_XBOX = '1040';
+	const GAME_XBOX360 = '1050';
+	const GAME_WIIWARE = '1060';
+	const GAME_XBOX360DLC = '1070';
+	const GAME_PS3 = '1080';
+	const GAME_OTHER = '1999';
+	const GAME_3DS = '1110';
+	const GAME_PSVITA = '1120';
+	const GAME_WIIU = '1130';
+	const GAME_XBOXONE = '1140';
+	const GAME_PS4 = '1180';
+	const MOVIE_FOREIGN = '2010';
+	const MOVIE_OTHER = '2999';
+	const MOVIE_SD = '2030';
+	const MOVIE_HD = '2040';
+	const MOVIE_3D = '2050';
+	const MOVIE_BLURAY = '2060';
+	const MOVIE_DVD = '2070';
+	const MOVIE_WEBDL = '2080';
+	const MUSIC_MP3 = '3010';
+	const MUSIC_VIDEO = '3020';
+	const MUSIC_AUDIOBOOK = '3030';
+	const MUSIC_LOSSLESS = '3040';
+	const MUSIC_OTHER = '3999';
+	const MUSIC_FOREIGN = '3060';
+	const PC_0DAY = '4010';
+	const PC_ISO = '4020';
+	const PC_MAC = '4030';
+	const PC_MOBILEOTHER = '4040';
+	const PC_GAMES = '4050';
+	const PC_MOBILEIOS = '4060';
+	const PC_MOBILEANDROID = '4070';
+	const TV_WEBDL = '5010';
+	const TV_FOREIGN = '5020';
+	const TV_SD = '5030';
+	const TV_HD = '5040';
+	const TV_OTHER = '5999';
+	const TV_SPORT = '5060';
+	const TV_ANIME = '5070';
+	const TV_DOCU = '5080';
+	const XXX_DVD = '6010';
+	const XXX_WMV = '6020';
+	const XXX_XVID = '6030';
+	const XXX_X264 = '6040';
+	const XXX_CLIPHD = '6041';
+	const XXX_CLIPSD = '6042';
+	const XXX_PACK = '6050';
+	const XXX_IMAGESET = '6060';
+	const XXX_OTHER = '6999';
+	const XXX_SD = '6080';
+	const XXX_WEBDL = '6090';
+	const BOOKS_MAGAZINES = '7010';
+	const BOOKS_EBOOK = '7020';
+	const BOOKS_COMICS = '7030';
+	const BOOKS_TECHNICAL = '7040';
+	const BOOKS_FOREIGN = '7060';
+	const BOOKS_UNKNOWN = '7999';
+	const BOOKS_ROOT = '7000';
+	const OTHER_ROOT = '0000';
+	const GAME_ROOT = '1000';
+	const MOVIE_ROOT = '2000';
+	const MUSIC_ROOT = '3000';
+	const PC_ROOT = '4000';
+	const TV_ROOT = '5000';
+	const XXX_ROOT = '6000';
 	const STATUS_INACTIVE = 0;
 	const STATUS_ACTIVE = 1;
 	const STATUS_DISABLED = 2;
+
+	const OTHERS_GROUP =
+		[
+			self::BOOKS_ROOT,
+			self::GAME_OTHER,
+			self::MOVIE_OTHER,
+			self::MUSIC_OTHER,
+			self::PC_MOBILEOTHER,
+			self::TV_OTHER,
+			self::OTHER_HASHED,
+			self::XXX_OTHER,
+			self::OTHER_MISC
+		]
+	;
 
 	private $tmpCat = 0;
 
@@ -139,61 +157,107 @@ class Category
 		return $catsrch;
 	}
 
+	public static function getCategoryOthersGroup()
+	{
+		return implode(",",
+			[
+				self::BOOKS_ROOT,
+				self::GAME_OTHER,
+				self::MOVIE_OTHER,
+				self::MUSIC_OTHER,
+				self::PC_MOBILEOTHER,
+				self::TV_OTHER,
+				self::OTHER_HASHED,
+				self::XXX_OTHER,
+				self::OTHER_MISC
+			]);
+	}
+
+	public static function getCategoryValue($category)
+	{
+		return constant('self::' . $category);
+	}
+
 	/**
-	 * Determine if a category is a parent.
+	 * Check if category is parent.
+	 *
+	 * @param $cid
+	 *
+	 * @return bool
 	 */
 	public function isParent($cid)
 	{
-		$ret = $this->pdo->queryOneRow(sprintf("select count(*) as count from category where id = %d and parentid is null", $cid), true);
-		if ($ret['count'])
-			return true;
-		else
-			return false;
+		$ret = $this->pdo->query(
+			sprintf("SELECT id FROM category WHERE id = %d AND parentid IS NULL", $cid),
+			true, NN_CACHE_EXPIRY_LONG
+		);
+		return (isset($ret[0]['id']));
 	}
 
 	/**
-	 * Get a list of all child categories for a parent.
-	 */
-	public function getChildren($cid)
-	{
-		return $this->pdo->query(sprintf("select c.* from category c where parentid = %d", $cid), true);
-	}
-
-	/**
-	 * Get a list of categories and their parents.
+	 * @param bool $activeonly
+	 *
+	 * @return array
 	 */
 	public function getFlat($activeonly = false)
 	{
 		$act = "";
-		if ($activeonly)
-			$act = sprintf(" where c.status = %d ", Category::STATUS_ACTIVE);
-		return $this->pdo->query("select c.*, (SELECT title FROM category WHERE id=c.parentid) AS parentName from category c " . $act . " ORDER BY c.id");
+		if ($activeonly) {
+			$act = sprintf(" WHERE c.status = %d ", Category::STATUS_ACTIVE);
+		}
+		return $this->pdo->query("SELECT c.*, (SELECT title FROM category WHERE id=c.parentid) AS parentName FROM category c " . $act . " ORDER BY c.id");
+	}
+
+	/**
+	 * Get children of a parent category.
+	 *
+	 * @param $cid
+	 *
+	 * @return array
+	 */
+	public function getChildren($cid)
+	{
+		return $this->pdo->query(
+			sprintf("SELECT c.* FROM category c WHERE parentid = %d", $cid),
+			true, NN_CACHE_EXPIRY_LONG
+		);
 	}
 
 	/**
 	 * Get names of enabled parent categories.
-	 *
 	 * @return array
 	 */
 	public function getEnabledParentNames()
 	{
-		return $this->pdo->query("SELECT title FROM category WHERE parentid IS NULL AND status = 1");
+		return $this->pdo->query(
+			"SELECT title FROM category WHERE parentid IS NULL AND status = 1",
+			true, NN_CACHE_EXPIRY_LONG
+		);
 	}
 
 	/**
-	 * Returns category id's for site disabled categories.
+	 * Returns category ID's for site disabled categories.
 	 *
 	 * @return array
 	 */
 	public function getDisabledIDs()
 	{
-		return $this->pdo->query("SELECT id FROM category WHERE status = 2 OR parentid IN (SELECT id FROM category WHERE status = 2 AND parentid IS NULL)");
+		return $this->pdo->query(
+			"SELECT id FROM category WHERE status = 2 OR parentid IN (SELECT id FROM category WHERE status = 2 AND parentid IS NULL)",
+			true, NN_CACHE_EXPIRY_LONG
+		);
 	}
+
 	/**
 	 * Get a category row by its id.
+	 *
+	 * @param $id
+	 *
+	 * @return array|bool
 	 */
 	public function getById($id)
 	{
+
 		return $this->pdo->queryOneRow(sprintf("SELECT c.disablepreview, c.id, c.description, c.minsizetoformrelease, c.maxsizetoformrelease, CONCAT(COALESCE(cp.title,'') , CASE WHEN cp.title IS NULL THEN '' ELSE ' > ' END , c.title) as title, c.status, c.parentid from category c left outer join category cp on cp.id = c.parentid where c.id = %d", $id));
 	}
 
@@ -240,11 +304,26 @@ class Category
 	*/
 
 	/**
-	 * Get a list of categories by an array of IDs.
+	 * Get multiple categories.
+	 *
+	 * @param array $ids
+	 *
+	 * @return array|bool
 	 */
 	public function getByIds($ids)
 	{
-		return $this->pdo->query(sprintf("SELECT concat(cp.title, ' > ',c.title) as title from category c inner join category cp on cp.id = c.parentid where c.id in (%s)", implode(',', $ids)));
+		if (count($ids) > 0) {
+			return $this->pdo->query(
+				sprintf(
+					"SELECT CONCAT(cp.title, ' > ',c.title) AS title
+					FROM category c
+					INNER JOIN category cp ON cp.id = c.parentid
+					WHERE c.id IN (%s)", implode(',', $ids)
+				), true, NN_CACHE_EXPIRY_LONG
+			);
+		} else {
+			return false;
+		}
 	}
 
 	public function getNameByID($ID)
@@ -257,6 +336,15 @@ class Category
 
 	/**
 	 * Update a category.
+	 *
+	 * @param $id
+	 * @param $status
+	 * @param $desc
+	 * @param $disablepreview
+	 * @param $minsize
+	 * @param $maxsize
+	 *
+	 * @return bool|\PDOStatement
 	 */
 	public function update($id, $status, $desc, $disablepreview, $minsize, $maxsize)
 	{
@@ -264,48 +352,59 @@ class Category
 	}
 
 	/**
-	 * Get the categories in a format for use by the headermenu.tpl.
+	 * @param array $excludedcats
+	 *
+	 * @return array
 	 */
 	public function getForMenu($excludedcats = [])
 	{
 		$ret = [];
 
-		$exccatlist = "";
-		if (count($excludedcats) > 0)
-			$exccatlist = " and id not in (" . implode(",", $excludedcats) . ")";
+		$exccatlist = '';
+		if (count($excludedcats) > 0) {
+			$exccatlist = ' AND id NOT IN (' . implode(',', $excludedcats) . ')';
+		}
 
-		$arr = $this->pdo->query(sprintf("select * from category where status = %d %s", Category::STATUS_ACTIVE, $exccatlist), true);
-		foreach ($arr as $a)
-			if ($a["parentid"] == "")
+		$arr = $this->pdo->query(
+			sprintf('SELECT * FROM category WHERE status = %d %s', Category::STATUS_ACTIVE, $exccatlist),
+			true, NN_CACHE_EXPIRY_LONG
+		);
+		foreach ($arr as $a) {
+			if ($a['parentid'] == '') {
 				$ret[] = $a;
+			}
+		}
 
 		foreach ($ret as $key => $parent) {
 			$subcatlist = [];
 			$subcatnames = [];
 			foreach ($arr as $a) {
-				if ($a["parentid"] == $parent["id"]) {
+				if ($a['parentid'] == $parent['id']) {
 					$subcatlist[] = $a;
-					$subcatnames[] = $a["title"];
+					$subcatnames[] = $a['title'];
 				}
 			}
 
 			if (count($subcatlist) > 0) {
 				array_multisort($subcatnames, SORT_ASC, $subcatlist);
-				$ret[$key]["subcatlist"] = $subcatlist;
+				$ret[$key]['subcatlist'] = $subcatlist;
 			} else {
 				unset($ret[$key]);
 			}
 		}
-
 		return $ret;
 	}
 
 	/**
 	 * Return a list of categories for use in a dropdown.
+	 *
+	 * @param bool $blnIncludeNoneSelected
+	 *
+	 * @return array
 	 */
 	public function getForSelect($blnIncludeNoneSelected = true)
 	{
-		$categories = $this->get();
+		$categories = $this->getCategories();
 		$temp_array = [];
 
 		if ($blnIncludeNoneSelected) {
@@ -319,22 +418,28 @@ class Category
 	}
 
 	/**
-	 * Get a list of categories.
+	 * Get array of categories in DB.
+	 *
+	 * @param bool  $activeonly
+	 * @param array $excludedcats
+	 *
+	 * @return array
 	 */
-	public function get($activeonly = false, $excludedcats = [])
+	public function getCategories($activeonly = false, $excludedcats = [])
 	{
-		$exccatlist = "";
-		if (count($excludedcats) > 0)
-			$exccatlist = " and c.id not in (" . implode(",", $excludedcats) . ")";
-
-		$act = "";
-		if ($activeonly)
-			$act = sprintf(" where c.status = %d ", Category::STATUS_ACTIVE);
-
-		if ($exccatlist != "")
-			$act .= $exccatlist;
-
-		return $this->pdo->query("select c.id, concat(cp.title, ' > ',c.title) as title, cp.id as parentid, c.status from category c inner join category cp on cp.id = c.parentid " . $act . " ORDER BY c.id", true);
+		return $this->pdo->query(
+			"SELECT c.id, CONCAT(cp.title, ' > ',c.title) AS title, cp.id AS parentid, c.status
+			FROM category c
+			INNER JOIN category cp ON cp.id = c.parentid " .
+			($activeonly ?
+				sprintf(
+					" WHERE c.status = %d %s ",
+					Category::STATUS_ACTIVE,
+					(count($excludedcats) > 0 ? " AND c.id NOT IN (" . implode(",", $excludedcats) . ")" : '')
+				) : ''
+			) .
+			" ORDER BY c.id"
+		);
 	}
 
 }

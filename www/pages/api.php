@@ -34,15 +34,20 @@ if (isset($_GET['t'])) {
 		case 'movie':
 			$function = 'm';
 			break;
+		case 'n':
+		case 'nfo':
+		case 'info':
+			$function = 'n';
+			break;
 		case 'r':
 		case 'register':
 			$function = 'r';
 			break;
 		default:
-			showApiError(202, 'No such function (' . $_GET['t'] . ')');
+			Utility::showApiError(202);
 	}
 } else {
-	showApiError(200, 'Missing parameter (t)');
+	Utility::showApiError(200);
 }
 
 $uid = $apiKey = '';
@@ -57,13 +62,13 @@ if ($page->users->isLoggedIn()) {
 } else {
 	if ($function != 'c' && $function != 'r') {
 		if (!isset($_GET['apikey'])) {
-			showApiError(200, 'Missing parameter (apikey)');
+			Utility::showApiError(200);
 		} else {
 			$res    = $page->users->getByRssToken($_GET['apikey']);
 			$apiKey = $_GET['apikey'];
 
 			if (!$res) {
-				showApiError(100, 'Incorrect user credentials (wrong API key)');
+				Utility::showApiError(100);
 			}
 
 			$uid           = $res['id'];
@@ -81,7 +86,7 @@ if ($uid != '') {
 	$page->users->updateApiAccessed($uid);
 	$apiRequests = $page->users->getApiRequests($uid);
 	if ($apiRequests > $maxRequests) {
-		showApiError(500, 'Request limit reached (' . $apiRequests . '/' . $maxRequests . ')');
+		Utility::showApiError(500);
 	}
 }
 
@@ -199,7 +204,7 @@ switch ($function) {
 	// Get NZB.
 	case 'g':
 		if (!isset($_GET['id'])) {
-			showApiError(200, 'Missing parameter (id is required for downloading an NZB)');
+			Utility::showApiError(200);
 		}
 
 		$relData = $releases->getByGuid($_GET['id']);
@@ -216,14 +221,14 @@ switch ($function) {
 				((isset($_GET['del']) && $_GET['del'] == '1') ? '&del=1' : '')
 			);
 		} else {
-			showApiError(300, 'No such item (the guid you provided has no release in our database)');
+			Utility::showApiError(300);
 		}
 		break;
 
 	// Get individual NZB details.
 	case 'd':
 		if (!isset($_GET['id'])) {
-			showApiError(200, 'Missing parameter (id is required for downloading an NZB)');
+			Utility::showApiError(200);
 		}
 
 		$page->users->addApiRequest($uid, $_SERVER['REQUEST_URI']);
@@ -236,6 +241,35 @@ switch ($function) {
 
 		printOutput($relData, $outputXML, $page, offset());
 		break;
+
+	// Get an NFO file for an individual release.
+	case 'n':
+		if (!isset($_GET['id'])) {
+			Utility::showApiError(200);
+		}
+
+		$page->users->addApiRequest($uid, $_SERVER['REQUEST_URI']);
+		$rel = $releases->getByGuid($_GET["id"]);
+		$data = $releases->getReleaseNfo($rel['id']);
+
+		if ($rel !== false && !empty($rel)) {
+			if ($data !== false) {
+				if (isset($_GET['o']) && $_GET['o'] == 'file') {
+					header("Content-type: application/octet-stream");
+					header("Content-disposition: attachment; filename={$rel['searchname']}.nfo");
+					exit($data['nfo']);
+				} else {
+					echo nl2br(Utility::cp437toUTF($data['nfo']));
+				}
+			} else {
+				Utility::showApiError(300);
+			}
+		} else {
+			Utility::showApiError(300);
+		}
+
+		break;
+
 
 	// Capabilities request.
 	case 'c':
@@ -267,18 +301,18 @@ switch ($function) {
 		verifyEmptyParameter('email');
 
 		if (!in_array((int)$page->settings->getSetting('registerstatus'), [Settings::REGISTER_STATUS_OPEN, Settings::REGISTER_STATUS_API_ONLY])) {
-			showApiError(104);
+			Utility::showApiError(104);
 		}
 
 		// Check email is valid format.
 		if (!$page->users->isValidEmail($_GET['email'])) {
-			showApiError(106);
+			Utility::showApiError(106);
 		}
 
 		// Check email isn't taken.
 		$ret = $page->users->getByEmail($_GET['email']);
 		if (isset($ret['id'])) {
-			showApiError(105);
+			Utility::showApiError(105);
 		}
 
 		// Create username/pass and register.
@@ -294,7 +328,7 @@ switch ($function) {
 		// Check if it succeeded.
 		$userData = $page->users->getById($uid);
 		if (!$userData) {
-			showApiError(107);
+			Utility::showApiError(107);
 		}
 
 		$response =
@@ -310,76 +344,6 @@ switch ($function) {
 }
 
 /**
- * Display error/error code.
- * @param int    $errorCode
- * @param string $errorText
- */
-function showApiError($errorCode = 900, $errorText = '')
-{
-	if ($errorText === '') {
-		switch ($errorCode) {
-			case 100:
-				$errorText = 'Incorrect user credentials';
-				break;
-			case 101:
-				$errorText = 'Account suspended';
-				break;
-			case 102:
-				$errorText = 'Insufficient privileges/not authorized';
-				break;
-			case 103:
-				$errorText = 'Registration denied';
-				break;
-			case 104:
-				$errorText = 'Registrations are closed';
-				break;
-			case 105:
-				$errorText = 'Invalid registration (Email Address Taken)';
-				break;
-			case 106:
-				$errorText = 'Invalid registration (Email Address Bad Format)';
-				break;
-			case 107:
-				$errorText = 'Registration Failed (Data error)';
-				break;
-			case 200:
-				$errorText = 'Missing parameter';
-				break;
-			case 201:
-				$errorText = 'Incorrect parameter';
-				break;
-			case 202:
-				$errorText = 'No such function';
-				break;
-			case 203:
-				$errorText = 'Function not available';
-				break;
-			case 300:
-				$errorText = 'No such item';
-				break;
-			case 500:
-				$errorText = 'Request limit reached';
-				break;
-			case 501:
-				$errorText = 'Download limit reached';
-				break;
-			default:
-				$errorText = 'Unknown error';
-				break;
-		}
-	}
-
-	$response =
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" .
-		'<error code="' . $errorCode .  '" description="' . $errorText . "\"/>\n";
-	header('Content-type: text/xml');
-	header('Content-Length: ' . strlen($response) );
-	header('X-nZEDb: API ERROR [' . $errorCode . '] ' . $errorText);
-
-	exit($response);
-}
-
-/**
  * Verify maxage parameter.
  * @return int
  */
@@ -388,9 +352,9 @@ function maxAge()
 	$maxAge = -1;
 	if (isset($_GET['maxage'])) {
 		if ($_GET['maxage'] == '') {
-			showApiError(201, 'Incorrect parameter (maxage must not be empty)');
+			Utility::showApiError(201);
 		} elseif (!is_numeric($_GET['maxage'])) {
-			showApiError(201, 'Incorrect parameter (maxage must be numeric)');
+			Utility::showApiError(201);
 		} else {
 			$maxAge = (int)$_GET['maxage'];
 		}
@@ -408,9 +372,9 @@ function categoryID()
 	if (isset($_GET['cat'])) {
 		$categoryIDs = urldecode($_GET['cat']);
 		// Append Web-DL category ID if HD present for SickBeard / Sonarr compatibility.
-		if (strpos($categoryIDs, (string)Category::CAT_TV_HD) !== false &&
-			strpos($categoryIDs, (string)Category::CAT_TV_WEBDL) === false) {
-			$categoryIDs .= (',' . Category::CAT_TV_WEBDL);
+		if (strpos($categoryIDs, (string)Category::TV_HD) !== false &&
+			strpos($categoryIDs, (string)Category::TV_WEBDL) === false) {
+			$categoryIDs .= (',' . Category::TV_WEBDL);
 		}
 		$categoryID = explode(',', $categoryIDs);
 	}
@@ -474,7 +438,7 @@ function printOutput($data, $xml = true, $page, $offset = 0)
 function verifyEmptyParameter($parameter)
 {
 	if (isset($_GET[$parameter]) && $_GET[$parameter] == '') {
-		showApiError(201, 'Incorrect parameter (' . $parameter . ' must not be empty)');
+		Utility::showApiError(201);
 	}
 }
 
@@ -499,7 +463,12 @@ function addLanguage(&$releases, Settings $settings)
 	if ($releases && count($releases)) {
 		foreach ($releases as $key => $release) {
 			if (isset($release['id'])) {
-				$language = $settings->queryOneRow(sprintf('SELECT audiolanguage FROM releaseaudio WHERE releaseid = %d', $release['id']));
+				$language = $settings->queryOneRow('
+					SELECT audiolanguage
+					FROM releaseaudio
+					WHERE releaseid = ' .
+						$release['id']
+				);
 				if ($language !== false) {
 					$releases[$key]['searchname'] = $releases[$key]['searchname'] . ' ' . $language['audiolanguage'];
 				}
@@ -512,7 +481,7 @@ function encodeAsJSON($data)
 {
 	$json = json_encode(Utility::encodeAsUTF8($data));
 	if ($json === false) {
-		showApiError(201);
+		Utility::showApiError(201);
 	}
 	return $json;
 }

@@ -753,28 +753,42 @@ class Users
 		$this->pdo->queryExec(sprintf("DELETE from roleexcat where role = %d", $role));
 	}
 
-	public function getCategoryExclusionNames($uid)
+	/**
+	 * Get the list of categories the user has excluded.
+	 *
+	 * @param int $userID ID of the user.
+	 *
+	 * @return array
+	 */
+	public function getCategoryExclusion($userID)
 	{
-		$data = $this->getCategoryExclusion($uid);
 		$ret = [];
-
-		if ($data) {
-			$category = new Category();
-			$data = $category->getByIds($data);
-			foreach ($data as $d)
-				$ret[] = $d["title"];
+		$categories = $this->pdo->query(sprintf("SELECT categoryid FROM userexcat WHERE userid = %d", $userID));
+		foreach ($categories as $category) {
+			$ret[] = $category["categoryid"];
 		}
 
 		return $ret;
 	}
 
-	public function getCategoryExclusion($uid)
+	/**
+	 * Get list of category names excluded by the user.
+	 *
+	 * @param int $userID ID of the user.
+	 *
+	 * @return array
+	 */
+	public function getCategoryExclusionNames($userID)
 	{
+		$data = $this->getCategoryExclusion($userID);
+		$category = new Category(['Settings' => $this->pdo]);
+		$categories = $category->getByIds($data);
 		$ret = [];
-		$data = $this->pdo->query(sprintf("select categoryid from userexcat where userid = %d union distinct select categoryid from roleexcat inner join users on users.role = roleexcat.role where users.id = %d", $uid, $uid));
-		foreach ($data as $d)
-			$ret[] = $d["categoryid"];
-
+		if ($categories !== false) {
+			foreach ($categories as $cat) {
+				$ret[] = $cat["title"];
+			}
+		}
 		return $ret;
 	}
 
@@ -812,14 +826,19 @@ class Users
 		);
 	}
 
+	/**
+	 * Get list of user signups by month.
+	 *
+	 * @return array
+	 */
 	public function getUsersByMonth()
 	{
-
-		return $this->pdo->query("SELECT DATE_FORMAT(createddate, '%M %Y') AS mth, COUNT(*) AS num
-							FROM users
-							WHERE createddate IS NOT NULL AND createddate != '0000-00-00 00:00:00'
-							GROUP BY DATE_FORMAT(createddate, '%M %Y')
-							ORDER BY createddate DESC"
+		return $this->pdo->query("
+			SELECT DATE_FORMAT(createddate, '%M %Y') AS mth, COUNT(id) AS num
+			FROM users
+			WHERE createddate IS NOT NULL AND createddate != '0000-00-00 00:00:00'
+			GROUP BY mth
+			ORDER BY createddate DESC"
 		);
 	}
 
@@ -1002,6 +1021,8 @@ class Users
 	 * if site->userdownloadpurgedays set to 0 then all release history is removed but
 	 * the download/request rows must remain for at least one day to allow the role based
 	 * limits to apply.
+	 *
+	 * @param int $days
 	 */
 	public function pruneRequestHistory($days = 0)
 	{
@@ -1055,6 +1076,8 @@ class Users
 	 * If a user downloads a NZB, log it.
 	 *
 	 * @param int $userID id of the user.
+	 *
+	 * @param     $releaseID
 	 *
 	 * @return bool|int
 	 */

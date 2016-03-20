@@ -1,9 +1,10 @@
 <?php
 namespace newznab;
 
+use newznab\Category;
 use newznab\db\Settings;
 use newznab\utility\Utility;
-use libs\Tmdb\TMDB;
+use newznab\processing\tv\TMDB;
 use newznab\processing\tv\TraktTv;
 
 /**
@@ -133,6 +134,11 @@ class Movie
 	public $service;
 
 	/**
+	 * @var array|bool|int|string
+	 */
+	public $catWhere;
+
+	/**
 	 * @param array $options Class instances / Echo to CLI.
 	 */
 	public function __construct(array $options = [])
@@ -161,6 +167,7 @@ class Movie
 		$this->echooutput = ($options['Echo'] && NN_ECHOCLI && $this->pdo->cli);
 		$this->imgSavePath = NN_COVERS . 'movies' . DS;
 		$this->service = '';
+		$this->catWhere = 'AND categoryid BETWEEN ' . Category::MOVIE_ROOT . ' AND ' . Category::MOVIE_OTHER;
 
 		if (NN_DEBUG || NN_LOGGING) {
 			$this->debug = true;
@@ -244,44 +251,6 @@ class Movie
 	}
 
 	/**
-	 * Get count of movies for movies browse page.
-	 *
-	 * @param       $cat
-	 * @param       $maxAge
-	 * @param array $excludedCats
-	 *
-	 * @return int
-	 */
-	public function getMovieCount($cat, $maxAge = -1, $excludedCats = [])
-	{
-		$catsrch = '';
-		if (count($cat) > 0 && $cat[0] != -1) {
-			$catsrch = (new Category(['Settings' => $this->pdo]))->getCategorySearch($cat);
-		}
-
-		$res = $this->pdo->queryOneRow(
-			sprintf("
-				SELECT COUNT(DISTINCT r.imdbid) AS num
-				FROM releases r
-				INNER JOIN movieinfo m ON m.imdbid = r.imdbid
-				WHERE r.nzbstatus = 1
-				AND r.imdbid != '0000000'
-				AND m.cover = 1
-				AND m.title != ''
-				AND r.passwordstatus %s
-				AND %s %s %s %s ",
-				$this->showPasswords,
-				$this->getBrowseBy(),
-				$catsrch,
-				($maxAge > 0 ? 'AND r.postdate > NOW() - INTERVAL ' . $maxAge . ' DAY' : ''),
-				(count($excludedCats) > 0 ? ' AND r.categoryid NOT IN (' . implode(',', $excludedCats) . ')' : '')
-			)
-		);
-
-		return ($res === false ? 0 : $res['num']);
-	}
-
-	/**
 	 * Get movie releases with covers for movie browse page.
 	 *
 	 * @param       $cat
@@ -291,7 +260,7 @@ class Movie
 	 * @param       $maxAge
 	 * @param array $excludedCats
 	 *
-	 * @return bool PDOStatement
+	 * @return bool|\PDOStatement
 	 */
 	public function getMovieRange($cat, $start, $num, $orderBy, $maxAge = -1, $excludedCats = [])
 	{
@@ -301,42 +270,86 @@ class Movie
 		}
 
 		$order = $this->getMovieOrder($orderBy);
+
+		$movies = $this->pdo->queryCalc(
+			sprintf("
+					SELECT SQL_CALC_FOUND_ROWS
+						m.imdbid,
+						GROUP_CONCAT(r.id ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_id
+					FROM movieinfo m
+					LEFT JOIN releases r USING (imdbid)
+					WHERE r.nzbstatus = 1
+					AND m.title != ''
+					AND m.imdbid != '0000000'
+					AND r.passwordstatus %s
+					%s %s %s %s
+					GROUP BY m.imdbid
+					ORDER BY %s %s %s",
+				$this->showPasswords,
+				$this->getBrowseBy(),
+				(!empty($catsrch) ? 'AND ' . $catsrch : ''),
+				($maxAge > 0
+					? 'AND r.postdate > NOW() - INTERVAL ' . $maxAge . 'DAY '
+					: ''
+				),
+				(count($excludedCats) > 0 ? ' AND r.categoryid NOT IN (' . implode(',', $excludedCats) . ')' : ''),
+				$order[0],
+				$order[1],
+				($start === false ? '' : ' LIMIT ' . $num . ' OFFSET ' . $start)
+			), true, NN_CACHE_EXPIRY_MEDIUM
+		);
+
+		$movieIDs = $releaseIDs = false;
+
+		if (is_array($movies['result'])) {
+			foreach ($movies['result'] AS $movie => $id) {
+				$movieIDs[] = $id['imdbid'];
+				$releaseIDs[] = $id['grp_release_id'];
+			}
+		}
+
 		$sql = sprintf("
 			SELECT
-			GROUP_CONCAT(r.id ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_id,
-			GROUP_CONCAT(r.rarinnerfilecount ORDER BY r.postdate DESC SEPARATOR ',') as grp_rarinnerfilecount,
-			GROUP_CONCAT(r.haspreview ORDER BY r.postdate DESC SEPARATOR ',') AS grp_haspreview,
-			GROUP_CONCAT(r.passwordstatus ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_password,
-			GROUP_CONCAT(r.guid ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_guid,
-			GROUP_CONCAT(rn.id ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_nfoid,
-			GROUP_CONCAT(groups.name ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_grpname,
-			GROUP_CONCAT(r.searchname ORDER BY r.postdate DESC SEPARATOR '#') AS grp_release_name,
-			GROUP_CONCAT(r.postdate ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_postdate,
-			GROUP_CONCAT(r.size ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_size,
-			GROUP_CONCAT(r.totalpart ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_totalparts,
-			GROUP_CONCAT(r.comments ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_comments,
-			GROUP_CONCAT(r.grabs ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_grabs,
-			m.*, groups.name AS group_name, rn.id as nfoid FROM releases r
-			LEFT OUTER JOIN groups ON groups.id = r.groupid
+				GROUP_CONCAT(r.id ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_id,
+				GROUP_CONCAT(r.rarinnerfilecount ORDER BY r.postdate DESC SEPARATOR ',') AS grp_rarinnerfilecount,
+				GROUP_CONCAT(r.haspreview ORDER BY r.postdate DESC SEPARATOR ',') AS grp_haspreview,
+				GROUP_CONCAT(r.passwordstatus ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_password,
+				GROUP_CONCAT(r.guid ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_guid,
+				GROUP_CONCAT(rn.releaseid ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_nfoid,
+				GROUP_CONCAT(g.name ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_grpname,
+				GROUP_CONCAT(r.searchname ORDER BY r.postdate DESC SEPARATOR '#') AS grp_release_name,
+				GROUP_CONCAT(r.postdate ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_postdate,
+				GROUP_CONCAT(r.size ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_size,
+				GROUP_CONCAT(r.totalpart ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_totalparts,
+				GROUP_CONCAT(r.comments ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_comments,
+				GROUP_CONCAT(r.grabs ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_grabs,
+				GROUP_CONCAT(df.failed ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_failed,
+				GROUP_CONCAT(cp.title, ' > ', c.title ORDER BY r.postdate DESC SEPARATOR ',') AS grp_release_catname,
+			m.*,
+			g.name AS group_name,
+			rn.releaseid AS nfoid
+			FROM releases r
+			LEFT OUTER JOIN groups g ON g.id = r.groupid
 			LEFT OUTER JOIN releasenfo rn ON rn.releaseid = r.id
+			LEFT OUTER JOIN dnzb_failures df ON df.release_id = r.id
+			LEFT OUTER JOIN category c ON c.id = r.categoryid
+			LEFT OUTER JOIN category cp ON cp.id = c.parentid
 			INNER JOIN movieinfo m ON m.imdbid = r.imdbid
-			WHERE r.nzbstatus = 1 AND r.imdbid != '0000000'
-			AND m.title != ''
-			AND r.passwordstatus %s AND %s %s %s %s
-			GROUP BY m.imdbid ORDER BY %s %s %s",
-			$this->showPasswords,
-			$this->getBrowseBy(),
-			$catsrch,
-			($maxAge > 0
-				? 'AND r.postdate > NOW() - INTERVAL ' . $maxAge . 'DAY '
-				: ''
-			),
-			(count($excludedCats) > 0 ? ' AND r.categoryid NOT IN (' . implode(',', $excludedCats) . ')' : ''),
+			WHERE m.imdbid IN (%s)
+			AND r.id IN (%s) %s
+			GROUP BY m.imdbid
+			ORDER BY %s %s",
+			(is_array($movieIDs) ? implode(',', $movieIDs) : -1),
+			(is_array($releaseIDs) ? implode(',', $releaseIDs) : -1),
+			(!empty($catsrch) ? 'AND ' . $catsrch : ''),
 			$order[0],
-			$order[1],
-			($start === false ? '' : ' LIMIT ' . $num . ' OFFSET ' . $start)
+			$order[1]
 		);
-		return $this->pdo->query($sql, true, NN_CACHE_EXPIRY_MEDIUM);
+		$return = $this->pdo->query($sql, true, NN_CACHE_EXPIRY_MEDIUM);
+		if (!empty($return)) {
+			$return[0]['_totalcount'] = (isset($movies['total']) ? $movies['total'] : 0);
+		}
+		return $return;
 	}
 
 	/**
@@ -392,9 +405,9 @@ class Movie
 					$bbv .= '.';
 				}
 				if ($bb === 'imdb') {
-					$browseBy .= 'm.' . $bb . 'id = ' . $bbv . ' AND ';
+					$browseBy .= 'AND m.' . $bb . 'id = ' . $bbv;
 				} else {
-					$browseBy .= 'm.' . $bb . ' ' . $this->pdo->likeString($bbv, true, true) . ' AND ';
+					$browseBy .= 'AND m.' . $bb . ' ' . $this->pdo->likeString($bbv, true, true);
 				}
 			}
 		}
@@ -453,7 +466,7 @@ class Movie
 	 *
 	 * @return mixed|void
 	 */
-		public function parseTraktTv(&$data)
+	public function parseTraktTv(&$data)
 	{
 		if (!isset($data['ids']['imdb']) || empty($data['ids']['imdb'])) {
 			return false;
@@ -499,7 +512,7 @@ class Movie
 	 */
 	private function checkTraktValue($value)
 	{
-		if (is_array($value)) {
+		if (is_array($value) && !empty($value)) {
 			$temp = '';
 			foreach($value as $val) {
 				if (!is_array($val) && !is_object($val)) {
@@ -549,8 +562,7 @@ class Movie
 	{
 		return [
 			'actors','backdrop','cover','director','genre','imdbid','language',
-			'plot','rating','tagline','title','tmdbid', 'trailer','type','year',
-			'traktid'
+			'plot','rating','tagline','title','tmdbid', 'trailer','type','year'
 		];
 	}
 
@@ -666,7 +678,6 @@ class Movie
 
 		$mov['imdbid'] = $imdbId;
 		$mov['tmdbid'] = (!isset($tmdb['tmdbid']) || $tmdb['tmdbid'] == '') ? 0 : $tmdb['tmdbid'];
-		$mov['traktid'] = $trakt['id'];
 
 		// Prefer Fanart.tv cover over TRAKT, TRAKT over TMDB and TMDB over IMDB.
 		if ($this->checkVariable($fanart['cover'])) {
@@ -738,8 +749,7 @@ class Movie
 			'title'     => $mov['title'],
 			'tmdbid'    => $mov['tmdbid'],
 			'type'      => html_entity_decode(ucwords(preg_replace('/[\.\_]/', ' ', $mov['type'])), ENT_QUOTES, 'UTF-8'),
-			'year'      => $mov['year'],
-			'traktid'   => $mov['traktid']
+			'year'      => $mov['year']
 		]);
 
 		if ($this->echooutput && $this->service !== '') {
@@ -813,11 +823,11 @@ class Movie
 	public function fetchTMDBProperties($imdbId, $text = false)
 	{
 		$lookupId = ($text === false ? 'tt' . $imdbId : $imdbId);
-		$tmdb = new TMDB($this->pdo->getSetting('tmdbkey'));
+		$tmdb = new TMDB();
 
 		try {
-			$tmdbLookup = $tmdb->getMovie($lookupId);
-		} catch (\exception $e) {
+			$tmdbLookup = $tmdb->client->getMovie($lookupId);
+		} catch (\Exception $e) {
 			return false;
 		}
 		/*$status = $tmdbLookup->get('status_code');
@@ -1043,14 +1053,14 @@ class Movie
 				$this->pdo->log->doEcho($this->pdo->log->headerOver($service . ' found IMDBid: ') . $this->pdo->log->primary('tt' . $imdbID));
 			}
 
-			$this->pdo->queryExec(sprintf('UPDATE releases SET imdbid = %s WHERE id = %d', $this->pdo->escapeString($imdbID), $id));
+			$this->pdo->queryExec(sprintf('UPDATE releases SET imdbid = %s WHERE id = %d %s', $this->pdo->escapeString($imdbID), $id, $this->catWhere));
 
 			// If set, scan for imdb info.
 			if ($processImdb == 1) {
 				$movCheck = $this->getMovieInfo($imdbID);
 				if ($movCheck === false || (isset($movCheck['updateddate']) && (time() - strtotime($movCheck['updateddate'])) > 2592000)) {
 					if ($this->updateMovieInfo($imdbID) === false) {
-						$this->pdo->queryExec(sprintf('UPDATE releases SET imdbid = %s WHERE id = %d', 0000000, $id));
+						$this->pdo->queryExec(sprintf('UPDATE releases SET imdbid = %s WHERE id = %d %s', 0000000, $id, $this->catWhere));
 					}
 				}
 			}
@@ -1078,9 +1088,9 @@ class Movie
 				FROM releases r
 				WHERE r.imdbid IS NULL
 				AND r.nzbstatus = 1
-				AND r.categoryid BETWEEN 2000 AND 2999
-				%s %s %s
+				%s %s %s %s
 				LIMIT %d",
+				$this->catWhere,
 				($groupID === '' ? '' : ('AND r.groupid = ' . $groupID)),
 				($guidChar === '' ? '' : ('AND r.guid ' . $this->pdo->likeString($guidChar, false, true))),
 				($lookupIMDB == 2 ? 'AND r.isrenamed = 1' : ''),
@@ -1102,7 +1112,7 @@ class Movie
 				// Try to get a name/year.
 				if ($this->parseMovieSearchName($arr['searchname']) === false) {
 					//We didn't find a name, so set to all 0's so we don't parse again.
-					$this->pdo->queryExec(sprintf("UPDATE releases SET imdbid = 0000000 WHERE id = %d", $arr["id"]));
+					$this->pdo->queryExec(sprintf("UPDATE releases SET imdbid = 0000000 WHERE id = %d %s", $arr["id"], $this->catWhere));
 					continue;
 
 				} else {
@@ -1168,7 +1178,7 @@ class Movie
 					}
 
 					// We failed to get an IMDB id from all sources.
-					$this->pdo->queryExec(sprintf("UPDATE releases SET imdbid = 0000000 WHERE id = %d", $arr["id"]));
+					$this->pdo->queryExec(sprintf("UPDATE releases SET imdbid = 0000000 WHERE id = %d %s", $arr["id"], $this->catWhere));
 				}
 			}
 		}
@@ -1467,8 +1477,8 @@ class Movie
 	public function updateUpcoming()
 	{
 		if ($this->echooutput) {
-						$this->pdo->log->doEcho($this->pdo->log->header('Updating movie schedule using rotten tomatoes.'));
-					}
+			$this->pdo->log->doEcho($this->pdo->log->header('Updating movie schedule using rotten tomatoes.'));
+		}
 
 		$rt = new RottenTomato($this->pdo->getSetting('rottentomatokey'));
 

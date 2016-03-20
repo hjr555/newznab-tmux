@@ -1,6 +1,8 @@
 <?php
 namespace newznab\libraries;
 
+
+use newznab\Category;
 use newznab\db\Settings;
 use newznab\processing\PostProcess;
 use newznab\ColorCLI;
@@ -8,8 +10,6 @@ use newznab\NNTP;
 use newznab\NZB;
 use newznab\RequestID;
 use newznab\Nfo;
-
-require_once(NN_LIBS . 'forkdaemon-php' . DS . 'fork_daemon.php');
 
 
 
@@ -21,7 +21,7 @@ require_once(NN_LIBS . 'forkdaemon-php' . DS . 'fork_daemon.php');
  * For example, you get all the id's of the active groups in the groups table, you then iterate over them and spawn
  * processes of misc/update_binaries.php passing the group id's.
  *
- * @package nzedb\libraries
+ * @package newznab\libraries
  */
 class Forking extends \fork_daemon
 {
@@ -37,6 +37,7 @@ class Forking extends \fork_daemon
 		parent::__construct();
 
 		$this->_colorCLI = new ColorCLI();
+		$this->pdo = new Settings();
 
 		$this->register_logging(
 			[0 => $this, 1 => 'logger'],
@@ -151,6 +152,7 @@ class Forking extends \fork_daemon
 			case 'fixRelNames_par2':
 			case 'fixRelNames_miscsorter':
 			case 'fixRelNames_predbft':
+			case 'fixRelNames_srr':
 				$maxProcesses = $this->fixRelNamesMainMethod();
 				break;
 
@@ -493,8 +495,8 @@ class Forking extends \fork_daemon
 		$groupby = "GROUP BY guidchar";
 		$orderby = "ORDER BY guidchar ASC";
 		$rowLimit = "LIMIT 16";
-		$extrawhere = "AND r.prehashid = 0 AND r.nzbstatus = 1";
-		$select = "DISTINCT LEFT(r.guid, 1) AS guidchar, COUNT(*) AS count";
+		$extrawhere = "AND r.preid = 0 AND r.nzbstatus = 1";
+		$select = "DISTINCT LEFT(r.guid, 1) AS guidchar, COUNT(r.id) AS count";
 
 
 		$threads = $this->pdo->getSetting('fixnamethreads');
@@ -505,7 +507,7 @@ class Forking extends \fork_daemon
 		}
 		switch($this->workTypeOptions[0]) {
 			case "md5":
-				$join = "LEFT OUTER JOIN releasefiles rf ON r.id = rf.releaseid AND rf.ishashed = 1";
+				$join = "LEFT OUTER JOIN release_files rf ON (r.id = rf.releaseid) AND rf.ishashed = 1";
 				$where = "r.ishashed = 1 AND r.dehashstatus BETWEEN -6 AND 0";
 				break;
 
@@ -514,7 +516,7 @@ class Forking extends \fork_daemon
 				break;
 
 			case "filename":
-				$join = "INNER JOIN releasefiles rf ON r.id = rf.releaseid";
+				$join = "INNER JOIN release_files rf ON rf.releaseid = r.id";
 				$where = "r.proc_files = 0";
 				break;
 
@@ -530,6 +532,10 @@ class Forking extends \fork_daemon
 				$extrawhere = "";
 				$where = "1=1";
 				$rowLimit = sprintf("LIMIT %s", $threads);
+				break;
+
+			case "srr":
+				$where = "r.proc_srr = 0";
 				break;
 		}
 
@@ -603,7 +609,7 @@ class Forking extends \fork_daemon
 				);
 			} else {
 				$this->_executeCommand(
-					PHP_BINARY . ' ' . NN_MISC . 'update_scripts' . DS . 'update_releases.php 1 false ' . $group['name']
+					PHP_BINARY . ' ' . NN_MISC . 'update' . DS . 'update_releases.php 1 false ' . $group['name']
 				);
 			}
 		}
@@ -761,7 +767,7 @@ class Forking extends \fork_daemon
 						FROM releases
 						WHERE nzbstatus = %d
 						AND imdbid IS NULL
-						AND categoryid BETWEEN 2000 AND 2999
+						AND categoryid BETWEEN ' . Category::MOVIE_ROOT . ' AND ' . Category::MOVIE_OTHER . '
 						%s %s
 						LIMIT 1',
 					NZB::NZB_ADDED,
@@ -786,7 +792,7 @@ class Forking extends \fork_daemon
 					FROM releases
 					WHERE nzbstatus = %d
 					AND imdbid IS NULL
-					AND categoryid BETWEEN 2000 AND 2999
+					AND categoryid BETWEEN ' . Category::MOVIE_ROOT . ' AND ' . Category::MOVIE_OTHER . '
 					%s %s
 					GROUP BY LEFT(guid, 1)
 					LIMIT 16',
@@ -816,7 +822,7 @@ class Forking extends \fork_daemon
 						WHERE nzbstatus = %d
 						AND size > 1048576
 						AND tv_episodes_id BETWEEN -2 AND 0
-						AND categoryid BETWEEN 5000 AND 5999
+						AND categoryid BETWEEN ' . Category::TV_ROOT . ' AND ' . Category::TV_OTHER . '
 						%s %s
 						LIMIT 1',
 					NZB::NZB_ADDED,
@@ -842,7 +848,7 @@ class Forking extends \fork_daemon
 					WHERE nzbstatus = %d
 					AND tv_episodes_id BETWEEN -2 AND 0
 					AND size > 1048576
-					AND categoryid BETWEEN 5000 AND 5999
+					AND categoryid BETWEEN ' . Category::TV_ROOT . ' AND ' . Category::TV_OTHER . '
 					%s %s
 					GROUP BY LEFT(guid, 1)
 					LIMIT 16',
@@ -903,7 +909,7 @@ class Forking extends \fork_daemon
 				INNER JOIN releases r ON r.groupid = g.id
 				WHERE g.active = 1
 				AND r.nzbstatus = %d
-				AND r.prehashid = 0
+				AND r.preid = 0
 				AND r.isrequestid = 1
 				AND r.reqidstatus = %d',
 				NZB::NZB_ADDED,

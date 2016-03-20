@@ -1,9 +1,11 @@
 <?php
 require_once("config.php");
 
+use newznab\Category;
 use newznab\db\Settings;
 use newznab\SABnzbd;
 
+$category = new Category();
 $page  = new AdminPage();
 $id    = 0;
 $error = '';
@@ -158,7 +160,7 @@ $page->smarty->assign('lookup_reqids_names', array('Disabled', 'Lookup Request I
 $page->smarty->assign('coversPath', NN_COVERS);
 
 // return a list of audiobooks, mags, ebooks, technical and foreign books
-$result = $page->settings->query("SELECT id, title FROM category WHERE id in (3030, 7010, 7020, 7040, 7060)");
+$result = $page->settings->query("SELECT id, title FROM category WHERE id IN ({$category->getCategoryValue('MUSIC_AUDIOBOOK')}, {$category->getCategoryValue('BOOKS_MAGAZINES')}, {$category->getCategoryValue('BOOKS_TECHNICAL')}, {$category->getCategoryValue('BOOKS_FOREIGN')})");
 
 // setup the display lists for these categories, this could have been static, but then if names changed they would be wrong
 $book_reqids_ids = [];
@@ -182,12 +184,13 @@ $books_selected = array_map(create_function('$value', 'return (int)$value;'), $b
 $page->smarty->assign('book_reqids_selected', $books_selected);
 
 $themelist = [];
-$themes    = scandir(NN_WWW . "/templates");
+$themes    = scandir(NN_THEMES);
 foreach ($themes as $theme) {
-	if (strpos($theme, ".") === false && is_dir(NN_WWW . "/templates/" . $theme)) {
+	if (strpos($theme, ".") === false && is_dir(NN_THEMES . $theme) && ucfirst($theme) === $theme) {
 		$themelist[] = $theme;
 	}
 }
+sort($themelist);
 
 $page->smarty->assign('themelist', $themelist);
 

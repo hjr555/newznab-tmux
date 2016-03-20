@@ -1,12 +1,8 @@
 <?php
 
-require_once SMARTY_DIR . 'Autoloader.php';
-
-Smarty_Autoloader::register();
 require_once NN_LIB . 'utility' . DS . 'SmartyUtils.php';
 
 use newznab\db\Settings;
-use newznab\Captcha;
 use newznab\Users;
 use newznab\SABnzbd;
 
@@ -18,22 +14,14 @@ class BasePage
 	public $settings = null;
 
 	/**
-	 * Public access to Captcha object for error checking.
-	 *
-	 * @var Captcha
-	 */
-	public $captcha;
-
-	/**
 	 * @var newznab\Users
 	 */
 	public $users = null;
 
 	/**
-	 * Is the current session HTTPS?
-	 * @var bool
+	 * @var Smarty
 	 */
-	public $https = false;
+	public $smarty = null;
 
 
 	public $title = '';
@@ -43,13 +31,54 @@ class BasePage
 	public $meta_keywords = '';
 	public $meta_title = '';
 	public $meta_description = '';
-	public $page = '';
-	public $page_template = '';
-	public $smarty = '';
-	public $userdata = [];
-	public $serverurl = '';
 	public $secure_connection = false;
+	public $show_desktop_mode = false;
 
+	/**
+	 * Current page the user is browsing. ie browse
+	 * @var string
+	 */
+	public $page = '';
+
+	public $page_template = '';
+
+	/**
+	 * User settings from the MySQL DB.
+	 * @var array|bool
+	 */
+	public $userdata = [];
+
+	/**
+	 * URL of the server. ie http://localhost/
+	 * @var string
+	 */
+	public $serverurl = '';
+
+	/**
+	 * Whether to trim white space before rendering the page or not.
+	 * @var bool
+	 */
+	public $trimWhiteSpace = true;
+
+	/**
+	 * Is the current session HTTPS?
+	 * @var bool
+	 */
+	public $https = false;
+
+	/**
+	 * Public access to Captcha object for error checking.
+	 *
+	 * @var \newznab\Captcha
+	 */
+	public $captcha;
+
+	/**
+	 * User's theme
+	 *
+	 * @var string
+	 */
+	protected $theme = 'Omicron';
 
 	/**
 	 * Set up session / smarty / user variables.
@@ -65,28 +94,18 @@ class BasePage
 			$this->floodCheck();
 		}
 
-		if ((function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) || ini_get('magic_quotes_sybase')) {
-			$this->stripSlashes($_GET);
-			$this->stripSlashes($_POST);
-			$this->stripSlashes($_REQUEST);
-			$this->stripSlashes($_COOKIE);
-		}
-
 		// Buffer settings/DB connection.
 		$this->settings = new Settings();
 		$this->smarty = new Smarty();
 
-		$this->smarty->setTemplateDir(
-			[
-				'user_frontend' => NN_WWW . 'themes/' . $this->settings->getSetting('style') . '/templates/frontend',
-				'frontend' => NN_WWW . 'themes/omicron/templates/frontend'
-			]
-		);
-		$this->smarty->setCompileDir(SMARTY_DIR.'templates_c'.DIRECTORY_SEPARATOR);
-		$this->smarty->setConfigDir(SMARTY_DIR.'configs'.DIRECTORY_SEPARATOR);
-		$this->smarty->setCacheDir(SMARTY_DIR.'cache'.DIRECTORY_SEPARATOR);
+		$this->smarty->setCompileDir(NN_RES . DS . 'smarty' . DS . 'templates_c/');
+		$this->smarty->setConfigDir(NN_RES . DS . 'smarty' . DS . 'configs/');
+		$this->smarty->setCacheDir(NN_RES . DS . 'smarty' . DS . 'cache/');
+		$this->smarty->setPluginsDir([
+			NN_WWW . 'plugins/',
+			SMARTY_DIR . 'plugins/',
+		]);
 		$this->smarty->error_reporting = ((NN_DEBUG ? E_ALL : E_ALL - E_NOTICE));
-		$this->secure_connection = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) ;
 
 		if (isset($_SERVER['SERVER_NAME'])) {
 			$this->serverurl = (
@@ -101,62 +120,19 @@ class BasePage
 
 		$this->users = new Users(['Settings' => $this->settings]);
 		if ($this->users->isLoggedIn()) {
-			$this->userdata = $this->users->getById($this->users->currentUserId());
-			$this->userdata["categoryexclusions"] = $this->users->getCategoryExclusion($this->users->currentUserId());
+			$this->setUserPreferences();
+		} else {
+			$this->theme = $this->settings->getSetting('style');
 
-			// Change the theme to user's selected theme if they selected one, else use the admin one.
-			if ($this->settings->getSetting('userselstyle') == 1) {
-				if (isset($this->userdata['style']) && $this->userdata['style'] !== 'None') {
-					$this->smarty->setTemplateDir(
-							[
-							'user_frontend' => NN_WWW . 'themes/' . $this->userdata['style'] . '/templates/frontend',
-							'frontend'      => NN_WWW . 'themes/omicron/templates/frontend'
-						]
-					);
-				}
-			}
-
-			//update lastlogin every 15 mins
-			if (strtotime($this->userdata['now'])-900 > strtotime($this->userdata['lastlogin']))
-				$this->users->updateSiteAccessed($this->userdata['id']);
-
-			$this->smarty->assign('userdata',$this->userdata);
-			$this->smarty->assign('loggedin',"true");
-
-			if ($this->userdata['nzbvortex_api_key'] != '' && $this->userdata['nzbvortex_server_url'] != '') {
-				$this->smarty->assign('weHasVortex', true);
-			}
-			else{
-				$this->smarty->assign('weHasVortex', false);
-			}
-
-			$sab = new SABnzbd($this);
-			$this->smarty->assign('sabintegrated', $sab->integratedBool);
-			if ($sab->integratedBool !== false && $sab->url != '' && $sab->apikey != '') {
-				$this->smarty->assign('sabapikeytype', $sab->apikeytype);
-			}
-			switch ((int)$this->userdata['role']) {
-				case Users::ROLE_ADMIN:
-					$this->smarty->assign('isadmin', 'true');
-					break;
-				case Users::ROLE_MODERATOR:
-					$this->smarty->assign('ismod', 'true');
-			}
-
-			if ($this->userdata["hideads"] == "1")
-			{
-				$this->settings->setSetting(['adheader', '']);
-				$this->settings->setSetting(['adbrowse', '']);
-				$this->settings->setSetting(['addetail', '']);
-			}
-		}
-		else
-		{
 			$this->smarty->assign('isadmin', 'false');
 			$this->smarty->assign('ismod', 'false');
 			$this->smarty->assign('loggedin', 'false');
 		}
+		if ($this->theme === '') {
+			$this->theme = 'Omicron';
+		}
 
+		$this->smarty->assign('theme', $this->theme);
 		$this->smarty->assign('site', $this->settings);
 		$this->smarty->assign('page', $this);
 	}
@@ -166,7 +142,7 @@ class BasePage
 	 *
 	 * @param $array
 	 */
-	private function stripSlashes(&$array)
+	private function stripSlashes(array &$array)
 	{
 		foreach ($array as $key => $value) {
 			$array[$key] = (is_array($value) ? array_map('stripslashes', $value) : stripslashes($value));
@@ -271,11 +247,20 @@ class BasePage
 		);
 	}
 
+	/**
+	 * Show 403 page.
+	 *
+	 * @param bool $from_admin
+	 */
 	public function show403($from_admin = false)
 	{
-		$redirect_path = ($from_admin) ? str_replace('/admin', '', WWW_TOP) : WWW_TOP;
-		header("Location: $redirect_path/login?redirect=".urlencode($_SERVER["REQUEST_URI"]));
-		die();
+		header(
+			'Location: ' .
+			($from_admin ? str_replace('/admin', '', WWW_TOP) : WWW_TOP) .
+			'/login?redirect=' .
+			urlencode($_SERVER['REQUEST_URI'])
+		);
+		exit();
 	}
 
 	/**
@@ -327,5 +312,62 @@ class BasePage
 	public function render()
 	{
 		$this->smarty->display($this->page_template);
+	}
+
+	protected function setUserPreferences()
+	{
+		$this->userdata = $this->users->getById($this->users->currentUserId());
+		$this->userdata["categoryexclusions"] = $this->users->getCategoryExclusion($this->users->currentUserId());
+
+		// Change the theme to user's selected theme if they selected one, else use the admin one.
+		if ($this->settings->getSetting('userselstyle') == 1) {
+			$this->theme = isset($this->userdata['style']) ? $this->userdata['style'] : 'None';
+			if ($this->theme == 'None') {
+				$this->theme = $this->settings->getSetting('style');
+			}
+
+			if (lcfirst($this->theme) === $this->theme) {
+				// TODO add redirect to error page telling the user their theme name is invalid (after SQL patch to update current users is added).
+				$this->theme = ucfirst($this->theme);
+			}
+		} else {
+			$this->theme = $this->settings->getSetting('style');
+		}
+
+		// Update last login every 15 mins.
+		if ((strtotime($this->userdata['now']) - 900) >
+			strtotime($this->userdata['lastlogin'])
+		) {
+			$this->users->updateSiteAccessed($this->userdata['id']);
+		}
+
+		$this->smarty->assign('userdata',$this->userdata);
+		$this->smarty->assign('loggedin',"true");
+
+		if ($this->userdata['nzbvortex_api_key'] != '' && $this->userdata['nzbvortex_server_url'] != '') {
+			$this->smarty->assign('weHasVortex', true);
+		} else {
+			$this->smarty->assign('weHasVortex', false);
+		}
+
+		$sab = new SABnzbd($this);
+		$this->smarty->assign('sabintegrated', $sab->integratedBool);
+		if ($sab->integratedBool !== false && $sab->url != '' && $sab->apikey != '') {
+			$this->smarty->assign('sabapikeytype', $sab->apikeytype);
+		}
+		switch ((int)$this->userdata['role']) {
+			case Users::ROLE_ADMIN:
+				$this->smarty->assign('isadmin', 'true');
+				break;
+			case Users::ROLE_MODERATOR:
+				$this->smarty->assign('ismod', 'true');
+		}
+
+		if ($this->userdata["hideads"] == "1")
+		{
+			$this->settings->setSetting(['adheader', '']);
+			$this->settings->setSetting(['adbrowse', '']);
+			$this->settings->setSetting(['addetail', '']);
+		}
 	}
 }

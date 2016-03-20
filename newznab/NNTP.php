@@ -3,7 +3,6 @@ namespace newznab;
 /**
  * Attempt to include PEAR's nntp class if it has not already been included.
  */
-require_once NN_LIBS . 'Net_NNTP/NNTP/Client.php';
 
 use newznab\db\Settings;
 use newznab\utility\Utility;
@@ -1048,6 +1047,13 @@ class NNTP extends \Net_NNTP_Client
 
 	/**
 	 * Encode a yenc encoded string.
+	 *
+	 * @param      $message
+	 * @param      $filename
+	 * @param int  $linelen
+	 * @param bool $crc32
+	 *
+	 * @return bool|string
 	 */
 	function encodeYenc2($message, $filename, $linelen = 128, $crc32 = true)
 	{
@@ -1095,6 +1101,10 @@ class NNTP extends \Net_NNTP_Client
 
 	/**
 	 * Decode a yenc encoded string.
+	 *
+	 * @param $yencodedvar
+	 *
+	 * @return bool|string
 	 */
 	function decodeYenc2($yencodedvar)
 	{

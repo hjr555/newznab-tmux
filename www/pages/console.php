@@ -1,25 +1,25 @@
 <?php
 
+if (!$page->users->isLoggedIn()) {
+	$page->show403();
+}
+
 use newznab\Console;
 use newznab\Category;
 use newznab\Genres;
 use newznab\DnzbFailures;
-
-if (!$page->users->isLoggedIn()) {
-	$page->show403();
-}
 
 $console = new Console(['Settings' => $page->settings]);
 $cat = new Category(['Settings' => $page->settings]);
 $gen = new Genres(['Settings' => $page->settings]);
 $fail = new DnzbFailures(['Settings' => $page->settings]);
 
-$concats = $cat->getChildren(Category::CAT_PARENT_GAME);
+$concats = $cat->getChildren(Category::GAME_ROOT);
 $ctmp = [];
 foreach ($concats as $ccat) {
 	$ctmp[$ccat['id']] = $ccat;
 }
-$category = Category::CAT_PARENT_GAME;
+$category = Category::GAME_ROOT;
 if (isset($_REQUEST["t"]) && array_key_exists($_REQUEST['t'], $ctmp)) {
 	$category = $_REQUEST["t"] + 0;
 }
@@ -29,8 +29,6 @@ $catarray[] = $category;
 
 $page->smarty->assign('catlist', $ctmp);
 $page->smarty->assign('category', $category);
-
-$browsecount = $console->getConsoleCount($catarray, -1, $page->userdata["categoryexclusions"]);
 
 $offset = (isset($_REQUEST["offset"]) && ctype_digit($_REQUEST['offset'])) ? $_REQUEST["offset"] : 0;
 $ordering = $console->getConsoleOrdering();
@@ -48,7 +46,6 @@ foreach ($results as $result) {
 			$result['review'] = implode(' ', $newwords) . '...';
 		}
 	}
-	$result['failed'] = $fail->getFailedCount($result['grp_release_guid']);
 	$consoles[] = $result;
 }
 
@@ -69,7 +66,7 @@ $page->smarty->assign('genre', $genre);
 
 $browseby_link = '&amp;title=' . $title . '&amp;platform=' . $platform;
 
-$page->smarty->assign('pagertotalitems', $browsecount);
+$page->smarty->assign('pagertotalitems', isset($results[0]['_totalcount']) ? $results[0]['_totalcount'] : 0);
 $page->smarty->assign('pageroffset', $offset);
 $page->smarty->assign('pageritemsperpage', ITEMS_PER_COVER_PAGE);
 $page->smarty->assign('pagerquerybase', WWW_TOP . "/console?t=" . $category . $browseby_link . "&amp;ob=" . $orderby . "&amp;offset=");

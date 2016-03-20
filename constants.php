@@ -22,10 +22,10 @@ define('NN_LIBS', NN_ROOT . 'libs' . DS);
 define('NN_MISC', NN_ROOT . 'misc' . DS);
 
 // /misc/update/
-define('NN_UPDATE', NN_MISC . 'update_scripts' . DS);
+define('NN_UPDATE', NN_MISC . 'update' . DS);
 
 // /misc/update/nix/
-define('NN_NIX', NN_UPDATE . 'nix_scripts' . DS);
+define('NN_NIX', NN_UPDATE . 'nix' . DS);
 
 // /misc/update/nix/multiprocessing/
 define('NN_MULTIPROCESSING', NN_NIX . 'multiprocessing' . DS);
@@ -36,6 +36,9 @@ define('NN_WWW', NN_ROOT . 'www' . DS);
 // Used to refer to the resources folder
 define('NN_RES', NN_ROOT . 'resources' . DS);
 
+// Used to refer to the covers folder
+define('NN_COVERS', NN_RES . 'covers' . DS);
+
 // Used to refer to the tmp folder
 define('NN_TMP', NN_RES . 'tmp' . DS);
 
@@ -43,7 +46,7 @@ define('NN_TMP', NN_RES . 'tmp' . DS);
 define('NN_THEMES', NN_WWW . 'themes' . DS);
 
 // Shared theme items (pictures, scripts).
-define('NN_THEMES_SHARED', NN_WWW . 'themes_shared' . DS);
+define('NN_THEMES_SHARED', NN_THEMES . 'shared' . DS);
 
 // Path where log files are stored.
 define('NN_LOGS', NN_RES . 'logs' . DS);

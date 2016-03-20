@@ -3,6 +3,7 @@
 namespace newznab;
 
 use newznab\db\Settings;
+use newznab\Category;
 
 /**
  * Class RSS -- contains specific functions for RSS
@@ -11,12 +12,12 @@ use newznab\db\Settings;
  */
 Class RSS
 {
-	/**
+	/** Releases class
 	 * @var Releases
 	 */
 	public $releases;
 
-	/**
+	/** Settings class
 	 * @var \newznab\db\Settings
 	 */
 	public $pdo;
@@ -52,11 +53,11 @@ Class RSS
 	{
 		$catSearch = $cartSearch = '';
 
-		$catLimit = "AND r.categoryid BETWEEN 5000 AND 5999";
+		$catLimit = "AND r.categoryid BETWEEN ' . Category::MOVIE_ROOT . ' AND ' . Category::MOVIE_OTHER . '";
 
 		if (count($cat)) {
 			if ($cat[0] == -2) {
-				$cartSearch = sprintf(' INNER JOIN userdownloads ON userdownloads.userid = %d AND userdownloads.releaseid = r.id ', $userID);
+				$cartSearch = sprintf(' INNER JOIN usercart ON usercart.userid = %d AND usercart.releaseid = r.id ', $userID);
 			} else if ($cat[0] != -1) {
 				$catSearch = $this->releases->categorySQL($cat);
 			}
@@ -129,7 +130,7 @@ Class RSS
 				LEFT OUTER JOIN tv_episodes tve ON tve.id = r.tv_episodes_id
 				WHERE %s %s %s
 				AND r.nzbstatus = %d
-				AND r.categoryid BETWEEN 5000 AND 5999
+				AND r.categoryid BETWEEN ' . Category::TV_ROOT . ' AND ' . Category::TV_OTHER . '
 				AND r.passwordstatus %s
 				ORDER BY postdate DESC %s",
 				$this->releases->getConcatenatedCategoryIDs(),
@@ -167,7 +168,7 @@ Class RSS
 				LEFT OUTER JOIN movieinfo mi ON mi.imdbid = r.imdbid
 				WHERE %s %s
 				AND r.nzbstatus = %d
-				AND r.categoryid BETWEEN 2000 AND 2999
+				AND r.categoryid BETWEEN ' . Category::MOVIE_ROOT . ' AND ' . Category::MOVIE_OTHER . '
 				AND r.passwordstatus %s
 				ORDER BY postdate DESC %s",
 				$this->releases->getConcatenatedCategoryIDs(),
@@ -189,13 +190,13 @@ Class RSS
 	public function getFirstInstance($column, $table)
 	{
 		return $this->pdo->queryOneRow(
-					sprintf("
+			sprintf("
 						SELECT %1\$s
 						FROM %2\$s
 						ORDER BY %1\$s ASC",
-						$column,
-						$table
-					)
+				$column,
+				$table
+			)
 		);
 	}
 }

@@ -42,7 +42,7 @@ switch ($action) {
 			$errorStr = "Password Mismatch";
 		} else if ($_POST['password'] != "" && !$page->users->isValidPassword($_POST['password'])) {
 			$errorStr = "Your password must be longer than five characters.";
-		} else if (isset($_POST['nzbgeturl']) && $nzbGet->verifyURL($_POST['nzbgeturl']) === false) {
+		} else if (!empty($_POST['nzbgeturl']) && $nzbGet->verifyURL($_POST['nzbgeturl']) === false) {
 			$errorStr = "The NZBGet URL you entered is invalid!";
 		} else if (!$page->users->isValidEmail($_POST['email'])) {
 			$errorStr = "Your email is not a valid format.";
@@ -76,7 +76,7 @@ switch ($action) {
 					(isset($_POST['nzbgeturl']) ? $_POST['nzbgeturl'] : ''),
 					(isset($_POST['nzbgetusername']) ? $_POST['nzbgetusername'] : ''),
 					(isset($_POST['nzbgetpassword']) ? $_POST['nzbgetpassword'] : ''),
-					(isset($_POST['saburl']) ? $_POST['saburl'] : ''),
+					(isset($_POST['saburl']) ? Utility::trailingSlash($_POST['saburl']) : ''),
 					(isset($_POST['sabapikey']) ? $_POST['sabapikey'] : ''),
 					(isset($_POST['sabpriority']) ? $_POST['sabpriority'] : ''),
 					(isset($_POST['sabapikeytype']) ? $_POST['sabapikeytype'] : ''),
@@ -106,12 +106,13 @@ switch ($action) {
 if ($page->settings->getSetting('userselstyle') ==1) {
 // Get the list of themes.
 	$themeList[] = 'None';
-	$themes = scandir(NN_WWW . '/themes');
+	$themes    = scandir(NN_THEMES);
 	foreach ($themes as $theme) {
-		if (strpos($theme, ".") === false && $theme[0] !== '_' && is_dir(NN_WWW . '/themes/' . $theme)) {
+		if (strpos($theme, ".") === false && is_dir(NN_THEMES . $theme) && ucfirst($theme) === $theme) {
 			$themeList[] = $theme;
 		}
 	}
+	sort($themeList);
 }
 
 $page->smarty->assign('themelist', $themeList);
@@ -159,7 +160,6 @@ $page->meta_description = "Edit User Profile for " . $data["username"];
 
 $page->smarty->assign('cp_url_selected', $data['cp_url']);
 $page->smarty->assign('cp_api_selected', $data['cp_api']);
-
 
 $page->smarty->assign('catlist', $category->getForSelect(false));
 
