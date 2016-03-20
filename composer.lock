@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "9e337d2b7ea684c922667713c186ea44",
-    "content-hash": "83c70f1d2f8bca651f5f1af9aa20af8c",
+    "hash": "eb53e7524d6bffb1b1ee814ce2ca3ed5",
+    "content-hash": "87d29610b1588b511de6c4c024230ac9",
     "packages": [
         {
             "name": "barracudanetworks/forkdaemon-php",
@@ -238,12 +238,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JPinkney/TVMaze-PHP-API-Wrapper.git",
-                "reference": "0bb3b0dee34e58411fd2ac74efe355a712075518"
+                "reference": "bf6b5bcf44d607bd2406b0638e86e6b9f1b909fe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JPinkney/TVMaze-PHP-API-Wrapper/zipball/0bb3b0dee34e58411fd2ac74efe355a712075518",
-                "reference": "0bb3b0dee34e58411fd2ac74efe355a712075518",
+                "url": "https://api.github.com/repos/JPinkney/TVMaze-PHP-API-Wrapper/zipball/bf6b5bcf44d607bd2406b0638e86e6b9f1b909fe",
+                "reference": "bf6b5bcf44d607bd2406b0638e86e6b9f1b909fe",
                 "shasum": ""
             },
             "type": "library",
@@ -263,7 +263,7 @@
                 }
             ],
             "description": "TVMaze-API-Wrapper",
-            "time": "2016-03-14 22:05:47"
+            "time": "2016-03-16 14:59:03"
         },
         {
             "name": "kbjr/Git.php",
@@ -459,7 +459,11 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=5.6.0"
+        "php": ">=5.6.0",
+        "ext-curl": "*",
+        "ext-gd": "*",
+        "ext-json": "*",
+        "ext-mysqlnd": "*"
     },
     "platform-dev": []
 }

@@ -58,7 +58,7 @@ if ($error === false) {
 			}
 		}
 	} else {
-		echo "not 'dev', 'dev-regexless', or 'master' branch, skipping version/patch updates\n";
+		echo "not '0.5.x' or '0.6.x-dev' branch, skipping version/patch updates\n";
 	}
 } else {
 	echo "Error in pre-commit hooks!!\n";
